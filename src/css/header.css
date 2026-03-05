@@ -1,0 +1,46 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    background-color: rgb(31, 31, 31);
+    color: rgb(255, 255, 255);
+}
+
+.menu_header {
+    display: flex;
+    gap: 12px;
+}
+
+.menu_header a {
+    color: rgb(255, 255, 255);
+    text-decoration: none;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+.menu_header a:hover {
+    color: rgb(228, 194, 19);
+    transform: translateY(-1px);
+}
+
+.opcoes_header {
+    display: flex;
+    gap: 16px;
+}
+
+.opcoes_header a {
+    color: rgb(255, 255, 255);
+    text-decoration: none;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+.opcoes_header a:hover {
+    color: rgb(228, 194, 19);
+    transform: translateY(-1px);
+}
