@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "../css/contato.css";
+import '../../css/cliente/contato.css'
 import { Route, Routes } from "react-router-dom";
 
 function Contato() {
