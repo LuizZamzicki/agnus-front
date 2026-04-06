@@ -1,8 +1,6 @@
-import { Route, Routes } from "react-router-dom";
 import "../css/app.css"
 import "../css/header.css"
 import { Search, User, ShoppingBag } from "lucide-react";
-import logo from "../img/logoAgnus.jpeg";
 import logo2 from "../img/logoAgnus.png";
 import { Link } from "react-router-dom";
 
@@ -20,6 +18,7 @@ function Header() {
                 <Link to="/produtos" className="nav-link">Produtos</Link>
                 <Link to="/contato" className="nav-link">Contato</Link>
                 <Link to="/sobre" className="nav-link">Sobre</Link>
+                <Link to="/admin" className="nav-link">Admin</Link>
             </nav>
 
             <nav className="opcoes_header">

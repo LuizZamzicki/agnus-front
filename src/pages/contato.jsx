@@ -1,6 +1,5 @@
 import { useState } from "react";
 import "../css/contato.css";
-import { Route, Routes } from "react-router-dom";
 
 function Contato() {
     const [nome, setNome] = useState("");
