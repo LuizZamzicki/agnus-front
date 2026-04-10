@@ -1,53 +1,78 @@
-import { useState } from "react";
-import '../../css/cliente/contato.css'
-import { Route, Routes } from "react-router-dom";
+import { useState, useEffect } from "react";
+import "../../css/cliente/contato.css";
 
 function Contato() {
     const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
     const [mensagem, setMensagem] = useState("");
-    const [envSuccess, setenvSuccess] = useState(false);
+    const [envSuccess, setEnvSuccess] = useState(false);
 
-    //Criar uma função para lidar com o envio de formulário
     function handleSubmit(event) {
         event.preventDefault();
-        console.log("Nome enviado no forms:", nome)
-        console.log("Email enviado no forms:", email)
-        console.log("Mensagem enviado no forms:", mensagem)
 
-        //Marcando como os campos serão enviados e limpa os campos do formulário
-        setenvSuccess(true);
+        console.log("Nome:", nome);
+        console.log("Email:", email);
+        console.log("Mensagem:", mensagem);
+
+        setEnvSuccess(true);
         setNome("");
         setEmail("");
         setMensagem("");
     }
 
+    useEffect(() => {
+        if (envSuccess) {
+            const timer = setTimeout(() => {
+                setEnvSuccess(false);
+            }, 3000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [envSuccess]);
+
     return (
         <main className="pagina-contato">
             <h1>Fale Conosco</h1>
-            <p className="subtitulo">Envie sua Dúvida e Responderemos em Breve</p>
+            <p className="subtitulo">
+                Envie sua dúvida e responderemos em breve
+            </p>
+
             <form className="form-contato" onSubmit={handleSubmit}>
-                <label htmlFor="label-nome">Nome: </label>
-                <input id="nome" type="text" placeholder="Digite seu nome completo"
-                    value={nome} onChange={(event) => setNome(event.target.value)} ></input>
+                <label>Nome:</label>
+                <input
+                    type="text"
+                    placeholder="Digite seu nome completo"
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                />
 
-                <label htmlFor="label-email">Email: </label>
-                <input id="email" type="email" placeholder="Digite seu email"
-                    value={email} onChange={(event) => setEmail(event.target.value)} ></input>
+                <label>Email:</label>
+                <input
+                    type="email"
+                    placeholder="Digite seu email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
 
-                <label htmlFor="label-msg">Mensagem: </label>
-                <input id="msg" type="textarea" placeholder="Digite sua mensagem"
-                    value={mensagem} onChange={(event) => setMensagem(event.target.value)} ></input>
+                <label>Mensagem:</label>
+                <textarea
+                    placeholder="Digite sua mensagem"
+                    value={mensagem}
+                    onChange={(e) => setMensagem(e.target.value)}
+                />
 
-                <button type="submit" className="botao-enviar">Enviar Mensagem</button>
-                {envSuccess && <p className="mensagem-sucesso">Mensagem enviada com sucesso!</p>}
-                {/*Limpando a mensagem de sucesso/*/}
-                {envSuccess && setTimeout(() => setenvSuccess(false), 3000)}
+                <button type="submit" className="botao-enviar">
+                    Enviar Mensagem
+                </button>
 
+                {envSuccess && (
+                    <p className="mensagem-sucesso">
+                        Mensagem enviada com sucesso!
+                    </p>
+                )}
             </form>
         </main>
-
-    )
+    );
 }
 
 export default Contato;

@@ -1,0 +1,108 @@
+.login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(24px, 4vw, 48px);
+  background: #f5efe6;
+  font-family: "Playfair Display", "Garamond", serif;
+  color: #1b1b1b;
+}
+
+.login-panel {
+  width: min(480px, 100%);
+  background: #fdf7ef;
+  border-radius: 16px;
+  padding: clamp(24px, 4vw, 36px);
+  box-shadow: 0 24px 48px rgba(27, 27, 27, 0.12);
+  border: 1px solid rgba(27, 27, 27, 0.08);
+}
+
+.login-brand h1 {
+  font-family: "Oswald", "Impact", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 8px 0 6px;
+}
+
+.login-brand p {
+  margin: 0 0 16px;
+  color: #5b5b5b;
+}
+
+.login-eyebrow {
+  display: inline-block;
+  font-family: "Oswald", "Impact", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-size: 12px;
+  color: #7b6a4f;
+}
+
+.login-form {
+  display: grid;
+  gap: 14px;
+}
+
+.login-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #6b5f52;
+}
+
+.login-input {
+  border-radius: 10px;
+  border: 1px solid rgba(27, 27, 27, 0.15);
+  padding: 12px 14px;
+  background: #fffaf4;
+  font-family: "Source Sans 3", "Segoe UI", sans-serif;
+  font-size: 14px;
+}
+
+.login-error {
+  background: #f8e2df;
+  color: #9d3b2d;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.login-btn {
+  border: none;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-family: "Oswald", "Impact", sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  background: #ede2d5;
+  color: #1b1b1b;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(27, 27, 27, 0.12);
+}
+
+.login-btn.primary {
+  background: #c04b31;
+  color: #fff;
+}
+
+.login-btn.ghost {
+  background: transparent;
+  border: 1px solid rgba(27, 27, 27, 0.3);
+  width: 100%;
+}
+
+.login-divider {
+  display: grid;
+  place-items: center;
+  margin: 18px 0 12px;
+  color: #7b6a4f;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}

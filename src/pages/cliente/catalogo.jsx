@@ -1,71 +1,124 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../../css/cliente/catalogo.css";
 import { Filter } from "lucide-react";
-import { Link } from "react-router-dom";
-
-const productsData = [
-    { id: 1, nome: "Camiseta Fortaleza", categoria: "Camisetas", preco: 129.9, tag: "MAIS VENDIDO", img: "/product-photos" },
-    { id: 2, nome: "Camiseta Leveza", categoria: "Camisetas", preco: 119.9, tag: "NOVO", img: "/img/camisa-branca.png" },
-    { id: 3, nome: "Regata Guerreiro", categoria: "Regatas", preco: 99.9, tag: "MAIS VENDIDO", img: "/img/regata.png" },
-    { id: 4, nome: "Shorts Performance", categoria: "Shorts", preco: 109.9, img: "/img/shorts.png" },
-    { id: 5, nome: "Legging Virtude", categoria: "Leggings", preco: 149.9, tag: "NOVO", img: "/img/legging.png" },
-    { id: 6, nome: "Hoodie Refúgio", categoria: "Hoodies", preco: 189.9, img: "/img/hoodie.png" },
-];
+import { useNavigate } from "react-router-dom";
 
 function Catalogo() {
 
+    const [produtos, setProdutos] = useState([]);
+    const [categorias, setCategorias] = useState([]);
     const [busca, setBusca] = useState("");
     const [categoria, setCategoria] = useState("Todos");
     const [ordem, setOrdem] = useState("relevancia");
 
-    const filtrarProdutos = () => {
-        let produtos = [...productsData];
+    const [pagina, setPagina] = useState(1);
+    const [totalPaginas, setTotalPaginas] = useState(1);
 
-        produtos = produtos.filter(p =>
-            p.nome.toLowerCase().includes(busca.toLowerCase())
-        );
+    const navigate = useNavigate();
+    const BASE_URL = "http://localhost:3000/";
 
-        if (categoria !== "Todos") {
-            produtos = produtos.filter(p => p.categoria === categoria);
+    async function carregarProdutos(pag = 1) {
+        try {
+
+            let url = `${BASE_URL}products/catalog?page=${pag}&limit=12`;
+
+            if (categoria !== "Todos") {
+                url += `&id_categoria=${categoria}`;
+            }
+
+            if (busca) {
+                url += `&search=${encodeURIComponent(busca)}`;
+            }
+
+            const res = await fetch(url);
+            const data = await res.json();
+
+            const lista = Array.isArray(data) ? data : data.data || [];
+
+            const produtosTratados = lista.map(prod => ({
+                ...prod,
+                imagens: (prod.imagens || []).map(img => `${BASE_URL}${img}`)
+            }));
+
+            setProdutos(produtosTratados);
+            setTotalPaginas(data.pagination?.totalPages || 1);
+
+        } catch (err) {
+            console.error("Erro produtos:", err);
         }
+    }
 
-        if (ordem === "menor") {
-            produtos.sort((a, b) => a.preco - b.preco);
-        } else if (ordem === "maior") {
-            produtos.sort((a, b) => b.preco - a.preco);
+    async function carregarCategorias() {
+        try {
+            const res = await fetch(`${BASE_URL}categories`);
+            const data = await res.json();
+            setCategorias(data.data || []);
+        } catch (err) {
+            console.error("Erro categorias:", err);
         }
+    }
 
-        return produtos;
-    };
+    useEffect(() => {
+        carregarProdutos(pagina);
+    }, [pagina, categoria, busca]);
 
-    const produtosFiltrados = filtrarProdutos();
+    useEffect(() => {
+        carregarCategorias();
+    }, []);
+
+    const produtosOrdenados = [...produtos].sort((a, b) => {
+        if (ordem === "menor") return a.preco_base - b.preco_base;
+        if (ordem === "maior") return b.preco_base - a.preco_base;
+        return 0;
+    });
 
     return (
         <div className="catalog-page">
+
             <section className="catalog-hero">
                 <span>EXPLORE</span>
                 <h1>CATÁLOGO</h1>
                 <p>Encontre a peça perfeita que une fé e performance</p>
             </section>
+
             <div className="catalog-container">
+
                 <aside className="catalog-sidebar">
-                    <span><Filter size={22} className="filter-ico" />FILTROS</span>
+                    <span><Filter size={22} /> FILTROS</span>
+
                     <input
                         type="text"
-                        placeholder="Descrição do produto..."
+                        placeholder="Buscar produto..."
                         value={busca}
-                        onChange={(e) => setBusca(e.target.value)}
+                        onChange={(e) => {
+                            setBusca(e.target.value);
+                            setPagina(1);
+                        }}
                     />
+
                     <div className="filter-group">
                         <span>CATEGORIA</span>
                         <ul>
-                            {["Todos", "Camisetas", "Regatas", "Shorts", "Leggings", "Hoodies"].map(cat => (
+                            <li
+                                className={categoria === "Todos" ? "active" : ""}
+                                onClick={() => {
+                                    setCategoria("Todos");
+                                    setPagina(1);
+                                }}
+                            >
+                                Todos
+                            </li>
+
+                            {categorias.map(cat => (
                                 <li
-                                    key={cat}
-                                    className={categoria === cat ? "active" : ""}
-                                    onClick={() => setCategoria(cat)}
+                                    key={cat.id_categoria}
+                                    className={Number(categoria) === cat.id_categoria ? "active" : ""}
+                                    onClick={() => {
+                                        setCategoria(cat.id_categoria);
+                                        setPagina(1);
+                                    }}
                                 >
-                                    {cat}
+                                    {cat.nome}
                                 </li>
                             ))}
                         </ul>
@@ -83,33 +136,67 @@ function Catalogo() {
                 </aside>
 
                 <section className="catalog-products">
+
                     <p className="catalog-count">
-                        {produtosFiltrados.length} produtos encontrados
+                        Página {pagina} de {totalPaginas}
                     </p>
+
                     <div className="catalog-grid">
-                        {produtosFiltrados.map(prod => (
-                            <div className="product-card" key={prod.id}>
 
-                                {prod.tag && (
-                                    <span className={`tag ${prod.tag === "NOVO" ? "new" : ""}`}>
-                                        {prod.tag}
-                                    </span>
-                                )}
+                        {produtosOrdenados.map(prod => {
 
-                                <img src={prod.img} alt="" />
+                            const imgPadrao = prod.imagens?.[0];
+                            const imgHover = prod.imagens?.[1] || imgPadrao;
 
-                                <h3>{prod.nome}</h3>
-                                <span>
-                                    R$ {prod.preco.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                                </span>
+                            return (
+                                <div className="product-card" key={prod.id_produto}>
 
-                                <div className="product-hover">
-                                    <Link to='/produto'><button>COMPRAR</button></Link>
+                                    {prod.mais_vendido && (
+                                        <span className="tag">MAIS VENDIDO</span>
+                                    )}
+
+                                    <div className="product-image">
+                                        <img src={imgPadrao} className="img-default" />
+                                        <img src={imgHover} className="img-hover" />
+                                    </div>
+
+                                    <div className="product-info">
+                                        <h3>{prod.nome}</h3>
+                                        <span>
+                                            R$ {Number(prod.preco_base || 0).toLocaleString("pt-BR", {
+                                                minimumFractionDigits: 2
+                                            })}
+                                        </span>
+                                    </div>
+
+                                    <div className="product-hover">
+                                        <button onClick={() => navigate(`/produto/${prod.id_produto}`)}>
+                                            VER PRODUTO
+                                        </button>
+                                    </div>
+
                                 </div>
+                            );
+                        })}
 
-                            </div>
-                        ))}
+                    </div>
 
+                    <div className="pagination">
+                        <button
+                            disabled={pagina === 1}
+                            onClick={() => setPagina(pagina - 1)}
+                        >
+                            ←
+                        </button>
+
+                        <span>{pagina} / {totalPaginas}</span>
+
+                        <button
+                            disabled={pagina === totalPaginas}
+                            onClick={() => setPagina(pagina + 1)}
+                        >
+                            →
+                        </button>
                     </div>
 
                 </section>
