@@ -243,18 +243,18 @@ function AdminProdutoCadastro() {
         if (!foto || typeof foto !== "object") return "";
         return normalizarUrlImagem(
           foto.url ||
-            foto.src ||
-            foto.path ||
-            foto.caminho ||
-            foto.foto ||
-            foto.imagem ||
-            foto.foto_url ||
-            foto.caminho_url ||
-            foto.image_url ||
-            foto.imagem_url ||
-            foto.arquivo_url ||
-            foto.caminho_arquivo ||
-            ""
+          foto.src ||
+          foto.path ||
+          foto.caminho ||
+          foto.foto ||
+          foto.imagem ||
+          foto.foto_url ||
+          foto.caminho_url ||
+          foto.image_url ||
+          foto.imagem_url ||
+          foto.arquivo_url ||
+          foto.caminho_arquivo ||
+          ""
         );
       })
       .filter(Boolean);
@@ -412,10 +412,10 @@ function AdminProdutoCadastro() {
             return idCorFoto === undefined || idCorFoto === null;
           })
           .map((foto) =>
-              normalizarUrlImagem(
-                foto?.caminho ?? foto?.path ?? foto?.url ?? foto?.src ?? foto?.foto ?? foto?.imagem ?? foto?.foto_url ?? foto?.caminho_url ?? foto?.image_url ?? foto?.imagem_url ?? foto?.arquivo_url ?? foto?.caminho_arquivo
-              )
+            normalizarUrlImagem(
+              foto?.caminho ?? foto?.path ?? foto?.url ?? foto?.src ?? foto?.foto ?? foto?.imagem ?? foto?.foto_url ?? foto?.caminho_url ?? foto?.image_url ?? foto?.imagem_url ?? foto?.arquivo_url ?? foto?.caminho_arquivo
             )
+          )
           .filter(Boolean);
 
         if (fotosSemCor.length > 0 && coresComFotos.length > 0) {

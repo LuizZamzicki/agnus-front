@@ -1,6 +1,6 @@
 import "../../css/cliente/home.css";
 import hero from "../../img/hero.png";
-import { Brush, Truck, Shield } from "lucide-react";
+import { Brush, Truck, Shield, Star } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -13,19 +13,23 @@ import { Autoplay } from "swiper/modules";
 
 function Home() {
     const [produtos, setProdutos] = useState([]);
+    const [bestSellers, setBestSellers] = useState([]);
     const [categorias, setCategorias] = useState([]);
     const [filtro, setFiltro] = useState("todos");
     const [pagina, setPagina] = useState(1);
     const [totalPaginas, setTotalPaginas] = useState(1);
+    const [avaliacoes, setAvaliacoes] = useState({});
 
     const navigate = useNavigate();
-    const BASE_URL = "http://localhost:3000/";
+    const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
-    // Função para carregar os produtos (alterada para Best Sellers)
-    async function carregarProdutos(pag = 1) {
+    async function carregarProdutos(pag = 1, filtroAtual = filtro) {
         try {
-            // URL para pegar os produtos mais vendidos (Best Sellers)
-            const url = `${BASE_URL}products/best-sellers?page=${pag}&limit=8`;
+            let url = `${BASE_URL}products/catalog?page=${pag}&limit=12`;
+
+            if (filtroAtual !== "todos") {
+                url += `&id_categoria=${filtroAtual}`;
+            }
 
             const res = await fetch(url);
             const data = await res.json();
@@ -34,20 +38,70 @@ function Home() {
 
             const produtosTratados = lista.map(prod => ({
                 ...prod,
-                imagens: (prod.imagens || []).map(img =>
-                    `${BASE_URL}${img}`),
+                imagens: (prod.imagens || []).map(img => `${BASE_URL}${img}`),
                 categoria_id: prod.id_categoria
             }));
 
             setProdutos(produtosTratados);
             setTotalPaginas(data.pagination?.totalPages || 1);
 
+            carregarAvaliacoes(produtosTratados);
+
         } catch (err) {
             console.error("Erro produtos:", err);
         }
     }
 
-    // Função para carregar as categorias
+    async function carregarAvaliacoes(produtosLista) {
+        try {
+            const avaliacoesTemp = {};
+
+            await Promise.all(
+                produtosLista.map(async (prod) => {
+                    try {
+                        const res = await fetch(`${BASE_URL}product-reviews/${prod.id_produto}`);
+                        const data = await res.json();
+
+                        const lista = Array.isArray(data) ? data : data?.data || [];
+
+                        if (lista.length > 0) {
+                            const soma = lista.reduce((acc, av) => acc + Number(av.nota || 0), 0);
+
+                            const media = soma / lista.length;
+
+                            avaliacoesTemp[prod.id_produto] = media;
+                        }
+                    } catch {
+                    }
+                })
+            );
+
+            setAvaliacoes(avaliacoesTemp);
+
+        } catch (err) {
+            console.error("Erro avaliações:", err);
+        }
+    }
+
+    async function carregarBestSellers() {
+        try {
+            const res = await fetch(`${BASE_URL}products/best-sellers?page=1&limit=6`);
+            const data = await res.json();
+
+            const lista = Array.isArray(data.data) ? data.data : [];
+
+            const produtosTratados = lista.map(prod => ({
+                ...prod,
+                imagens: (prod.imagens || []).map(img => `${BASE_URL}${img}`)
+            }));
+
+            setBestSellers(produtosTratados);
+
+        } catch (err) {
+            console.error("Erro best sellers:", err);
+        }
+    }
+
     async function carregarCategorias() {
         try {
             const res = await fetch(`${BASE_URL}categories`);
@@ -59,12 +113,30 @@ function Home() {
     }
 
     useEffect(() => {
-        carregarProdutos(pagina);
-    }, [pagina]);
-
-    useEffect(() => {
+        carregarBestSellers();
         carregarCategorias();
     }, []);
+
+    useEffect(() => {
+        carregarProdutos(pagina, filtro);
+    }, [pagina, filtro]);
+
+    function renderStars(media) {
+        const nota = Number(media) || 0;
+
+        return (
+            <div className="stars">
+                {[1, 2, 3, 4, 5].map(i => (
+                    <Star
+                        key={i}
+                        size={14}
+                        fill={i <= Math.round(nota) ? "#facc15" : "#e5e5e5"}
+                        stroke="none"
+                    />
+                ))}
+            </div>
+        );
+    }
 
     return (
         <main className="home">
@@ -107,7 +179,7 @@ function Home() {
                         autoplay={{ delay: 2500 }}
                         breakpoints={{ 320: { slidesPerView: 1 }, 600: { slidesPerView: 2 }, 900: { slidesPerView: 3 } }}
                     >
-                        {produtos.map(prod => {
+                        {bestSellers.map(prod => {
                             const imgPadrao = prod.imagens[0] || hero;
                             const imgHover = prod.imagens[1] || imgPadrao;
 
@@ -115,12 +187,15 @@ function Home() {
                                 <SwiperSlide key={prod.id_produto}>
                                     <div className="product-card">
                                         <div className="product-image">
-                                            <img src={imgPadrao} className="img-default" />
-                                            <img src={imgHover} className="img-hover" />
+                                            <img src={imgPadrao} className="img-default" onError={(e) => e.target.src = hero} />
+                                            <img src={imgHover} className="img-hover" onError={(e) => e.target.src = hero} />
                                         </div>
 
                                         <div className="product-info">
                                             <h3>{prod.nome}</h3>
+
+                                            {renderStars(avaliacoes[prod.id_produto])}
+
                                             <span>
                                                 R$ {Number(prod.preco_base || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                                             </span>
@@ -179,12 +254,15 @@ function Home() {
                             return (
                                 <div className="product-card" key={prod.id_produto}>
                                     <div className="product-image">
-                                        <img src={imgPadrao} className="img-default" />
-                                        <img src={imgHover} className="img-hover" />
+                                        <img src={imgPadrao} className="img-default" onError={(e) => e.target.src = hero} />
+                                        <img src={imgHover} className="img-hover" onError={(e) => e.target.src = hero} />
                                     </div>
 
                                     <div className="product-info">
                                         <h3>{prod.nome}</h3>
+
+                                        {renderStars(avaliacoes[prod.id_produto])}
+
                                         <span>
                                             R$ {Number(prod.preco_base || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                                         </span>

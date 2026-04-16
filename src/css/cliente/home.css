@@ -125,6 +125,23 @@
     gap: 25px;
 }
 
+.logout-icon {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.logout-icon:hover {
+    color: #b89600;
+}
+
+.stars {
+    display: flex;
+    gap: 3px;
+    margin: 6px 0;
+    align-items: center;
+}
+
 .product-card {
     background: white;
     padding: 20px;

@@ -1,11 +1,25 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
+import { Star } from "lucide-react";
 import "../../css/cliente/produto.css";
 
 function Produto() {
     const { id_produto } = useParams();
-    const BASE_URL = "http://localhost:3000/";
-    const navigate = useNavigate();
+    const BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
+    const auth = JSON.parse(localStorage.getItem("auth") || "{}");
+
+    const id_usuario = Number(
+        auth?.user?.id_usuario ||
+        auth?.user?.id ||
+        auth?.id_usuario ||
+        auth?.id ||
+        0
+    );
+
+    const isAdmin =
+        auth?.user?.tipo === "administrador" ||
+        auth?.tipo === "administrador";
 
     const [produto, setProduto] = useState(null);
     const [imagens, setImagens] = useState([]);
@@ -15,26 +29,334 @@ function Produto() {
     const [tamanhoSelecionado, setTamanhoSelecionado] = useState(null);
     const [corSelecionada, setCorSelecionada] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [alerta, setAlerta] = useState(null);
+
+    const [fotosAvaliacao, setFotosAvaliacao] = useState([]);
+
+    const [podeAvaliar, setPodeAvaliar] = useState(false);
+
+    const [avaliacoes, setAvaliacoes] = useState([]);
+    const [avaliacaoResumo, setAvaliacaoResumo] = useState({
+        media: 0,
+        total: 0
+    });
+
+    const [mostrarForm, setMostrarForm] = useState(false);
+
+    const [novaAvaliacao, setNovaAvaliacao] = useState({
+        titulo: "",
+        nota: 0,
+        nome: "",
+        comentario: "",
+        imagens: []
+    });
+
+    const corObj = cores.find(c => Number(c.id_produto_cor) === Number(corSelecionada));
+    const gradeObj = tamanhos.find(t => Number(t.id_produto_grade) === Number(tamanhoSelecionado));
+
+    const precoFinal =
+        Number(produto?.preco_base ?? produto?.preco ?? 0) +
+        Number(corObj?.acrescimo || 0) +
+        Number(gradeObj?.acrescimo || 0);
+
+    useEffect(() => {
+        if (alerta) {
+            const timer = setTimeout(() => setAlerta(null), 1700);
+            return () => clearTimeout(timer);
+        }
+    }, [alerta]);
+
+    function renderStars(media = 0, clickable = false, onClick = null) {
+        return (
+            <div className="rating">
+                {[1, 2, 3, 4, 5].map((i) => {
+                    let className = "star";
+
+                    if (i <= Math.floor(media)) {
+                        className = "star filled";
+                    } else if (i === Math.floor(media) + 1 && media % 1 !== 0) {
+                        className = "star half";
+                    }
+
+                    return (
+                        <Star
+                            key={i}
+                            size={18}
+                            className={className}
+                            onClick={() => clickable && onClick(i)}
+                            style={{ cursor: clickable ? "pointer" : "default" }}
+                        />
+                    );
+                })}
+            </div>
+        );
+    }
+
+    function lerArquivoComoDataUrl(arquivo) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = () => {
+                resolve(reader.result);
+            };
+
+            reader.onerror = () => {
+                reject(new Error("Erro ao ler arquivo"));
+            };
+
+            reader.readAsDataURL(arquivo);
+        });
+    }
+
+    const handleNotaChange = (e) => {
+        let value = e.target.value;
+
+        value = value.replace(",", ".");
+
+        let nota = Number(value);
+
+        if (isNaN(nota)) nota = 0;
+        if (nota < 0) nota = 0;
+        if (nota > 5) nota = 5;
+
+        setNovaAvaliacao({
+            ...novaAvaliacao,
+            nota: nota
+        });
+    };
+
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+
+        const atuais = novaAvaliacao.imagens || [];
+
+        if (files.length + atuais.length <= 4) {
+            setNovaAvaliacao({
+                ...novaAvaliacao,
+                imagens: [...novaAvaliacao.imagens, ...files],
+            });
+        } else {
+            setAlerta({ tipo: "erro", mensagem: "Você pode adicionar no máximo 4 imagens." });
+        }
+    };
+
+    const handleFotosChange = (e) => {
+        const files = Array.from(e.target.files);
+
+        const novasFotos = [...fotosAvaliacao, ...files].slice(0, 4);
+
+        setFotosAvaliacao(novasFotos);
+    };
+
+    useEffect(() => {
+        const verificarPedido = async () => {
+            try {
+                const resPedidos = await fetch(
+                    `${BASE_URL}orders?${new URLSearchParams({ id_usuario })}`
+                );
+
+                if (!resPedidos.ok) {
+                    throw new Error("Erro ao buscar pedidos");
+                }
+
+                const pedidos = await resPedidos.json();
+
+                const pedidosEntregues = pedidos.filter(p => p.status === "entregue");
+
+                if (pedidosEntregues.length === 0) {
+                    setPodeAvaliar(false);
+                    return;
+                }
+
+                const itensPedidos = await Promise.all(
+                    pedidosEntregues.map(async (pedido) => {
+                        const resItens = await fetch(
+                            `${BASE_URL}order-items/${pedido.id_pedido}`
+                        );
+
+                        if (!resItens.ok) return [];
+
+                        const itens = await resItens.json();
+                        return itens;
+                    })
+                );
+
+                const todosItens = itensPedidos.flat();
+
+                if (todosItens.length === 0) {
+                    setPodeAvaliar(false);
+                    return;
+                }
+
+                const [resCores, resGrades] = await Promise.all([
+                    fetch(`${BASE_URL}product-colors/${id_produto}`),
+                    fetch(`${BASE_URL}product-grades/${id_produto}`)
+                ]);
+
+                const cores = await resCores.json();
+                const grades = await resGrades.json();
+
+                const listaCores = Array.isArray(cores) ? cores : cores?.data || [];
+                const listaGrades = Array.isArray(grades) ? grades : grades?.data || [];
+
+                const idsCoresProduto = listaCores.map(c => Number(c.id_produto_cor));
+                const idsGradesProduto = listaGrades.map(g => Number(g.id_produto_grade));
+
+                const encontrou = todosItens.some(item =>
+                    idsCoresProduto.includes(Number(item.id_produto_cor)) &&
+                    idsGradesProduto.includes(Number(item.id_produto_grade))
+                );
+
+                setPodeAvaliar(encontrou);
+
+            } catch (err) {
+                console.error("Erro ao verificar pedido:", err);
+                setPodeAvaliar(false);
+            }
+        };
+
+        if (id_usuario && id_produto) {
+            verificarPedido();
+        }
+    }, [id_usuario, id_produto]);
+
+    useEffect(() => {
+        async function carregarAvaliacoes() {
+            try {
+                const res = await fetch(`${BASE_URL}product-reviews/${id_produto}`);
+                const data = await res.json();
+
+                const lista = Array.isArray(data) ? data : data?.data || [];
+
+                setAvaliacoes(lista);
+
+                if (lista.length === 0) {
+                    setAvaliacaoResumo({ media: 0, total: 0 });
+                    return;
+                }
+
+                const soma = lista.reduce((acc, r) => acc + Number(r.nota || 0), 0);
+
+                setAvaliacaoResumo({
+                    media: soma / lista.length,
+                    total: lista.length
+                });
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        if (id_produto) carregarAvaliacoes();
+    }, [id_produto]);
+
+    const enviarAvaliacao = async () => {
+        if (!novaAvaliacao.nota) {
+            setAlerta({ tipo: "erro", mensagem: "Selecione uma nota" });
+            return;
+        }
+
+        if (!novaAvaliacao.comentario.trim()) {
+            setAlerta({ tipo: "erro", mensagem: "Digite um comentário" });
+            return;
+        }
+
+        if (!id_produto || !id_usuario) {
+            setAlerta({ tipo: "erro", mensagem: "Produto ou usuário não encontrados." });
+            return;
+        }
+
+        const nomeFinal =
+            novaAvaliacao.nome?.trim() ||
+            auth?.user?.nome ||
+            auth?.nome ||
+            "Usuário";
+
+        const avaliacao = {
+            id_produto,
+            id_usuario,
+            nota: novaAvaliacao.nota,
+            nome: nomeFinal,
+            comentario: novaAvaliacao.comentario
+        };
+
+        try {
+            const res = await fetch(`${BASE_URL}product-reviews`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(avaliacao)
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                console.error('Erro na requisição:', errorData);
+                throw new Error(errorData.message || 'Erro desconhecido');
+            }
+
+            const avaliacaoCriada = await res.json();
+            const id_avaliacao_produto = avaliacaoCriada.id_avaliacao_produto;
+
+            if (fotosAvaliacao.length > 0) {
+                const fotos_upload = await Promise.all(
+                    fotosAvaliacao.map(async (file, index) => ({
+                        upload_index: index,
+                        nome_original: file.name,
+                        tipo_arquivo: file.type || null,
+                        tamanho_bytes: file.size || 0,
+                        arquivo_base64: await lerArquivoComoDataUrl(file)
+                    }))
+                );
+
+                await fetch(`${BASE_URL}product-review-photos`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        id_avaliacao_produto,
+                        fotos_upload
+                    })
+                });
+            }
+
+            setAlerta({ tipo: "sucesso", mensagem: "Avaliação enviada!" });
+
+            setMostrarForm(false);
+            setNovaAvaliacao({ nota: 0, nome: "", comentario: "", imagens: [] });
+            setFotosAvaliacao([]);
+
+            const updated = await fetch(`${BASE_URL}product-reviews/${id_produto}`);
+            const data = await updated.json();
+            setAvaliacoes(data);
+
+        } catch (err) {
+            setAlerta({ tipo: "erro", mensagem: "Erro ao enviar avaliação: " + err.message });
+        }
+    };
 
     const adicionarCarrinho = async () => {
+        if (isAdmin) {
+            setAlerta({ tipo: "erro", mensagem: "Administradores não podem comprar" });
+            return;
+        }
 
-        if (!Number.isInteger(tamanhoSelecionado) || !Number.isInteger(corSelecionada)) {
-            alert("Selecione tamanho e cor válidos!");
+        if (!id_usuario) {
+            setAlerta({ tipo: "erro", mensagem: "Faça login para continuar" });
+            return;
+        }
+
+        if (!tamanhoSelecionado || !corSelecionada) {
+            setAlerta({ tipo: "erro", mensagem: "Selecione tamanho e cor!" });
             return;
         }
 
         try {
-            const id_usuario = 1;
-
-            // 🔥 BUSCAR CARRINHO
             const res = await fetch(`${BASE_URL}carts?id_usuario=${id_usuario}`);
             const carrinhos = await res.json();
 
             let carrinho;
 
             if (!Array.isArray(carrinhos) || carrinhos.length === 0) {
-                console.log("Criando novo carrinho...");
-
                 const novo = await fetch(`${BASE_URL}carts`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -46,47 +368,122 @@ function Produto() {
                 carrinho = carrinhos[0];
             }
 
-            // 🔥 VALIDAÇÃO CRÍTICA
-            if (!carrinho || !carrinho.id_carrinho) {
-                console.error("Carrinho inválido:", carrinho);
-                alert("Erro ao obter carrinho");
+            const idCarrinho =
+                carrinho?.id_carrinho ||
+                carrinho?.id ||
+                carrinho?.dataValues?.id_carrinho;
+
+            if (!idCarrinho) {
+                setAlerta({ tipo: "erro", mensagem: "Erro ao obter carrinho" });
                 return;
             }
 
-            const preco = Number(produto.preco_base ?? produto.preco ?? 0);
+            const itensRes = await fetch(`${BASE_URL}cart-items/${idCarrinho}`);
+            const itens = await itensRes.json();
 
-            const payload = {
-                id_carrinho: Number(carrinho.id_carrinho),
-                id_produto_cor: Number(corSelecionada),
-                id_produto_grade: Number(tamanhoSelecionado),
-                quantidade: 1,
-                preco_unitario: preco
-            };
+            const listaItens = Array.isArray(itens) ? itens : itens?.data || [];
 
-            console.log("🚀 PAYLOAD:", payload);
+            const existente = listaItens.find(i =>
+                Number(i.id_produto_cor) === Number(corSelecionada) &&
+                Number(i.id_produto_grade) === Number(tamanhoSelecionado)
+            );
 
-            // 🔥 ENVIO
+            if (existente) {
+                const novaQtd = Number(existente.quantidade) + 1;
+
+                const updateRes = await fetch(`${BASE_URL}cart-items/${existente.id_carrinho_item}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        quantidade: novaQtd
+                    })
+                });
+
+                if (!updateRes.ok) {
+                    setAlerta({ tipo: "erro", mensagem: "Erro ao atualizar item no carrinho" });
+                    return;
+                }
+
+                setAlerta({ tipo: "sucesso", mensagem: "Quantidade atualizada no carrinho!" });
+                return;
+            }
+
             const response = await fetch(`${BASE_URL}cart-items`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    id_carrinho: Number(idCarrinho),
+                    id_produto_cor: Number(corSelecionada),
+                    id_produto_grade: Number(tamanhoSelecionado),
+                    quantidade: 1,
+                    preco_unitario: precoFinal
+                })
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                console.error("Erro API:", data);
-                alert(data.message || "Erro ao adicionar item");
+                setAlerta({ tipo: "erro", mensagem: data.message || "Erro ao adicionar item" });
                 return;
             }
 
-            alert("Produto adicionado ao carrinho!");
+            setAlerta({ tipo: "sucesso", mensagem: "Produto adicionado ao carrinho!" });
 
         } catch (err) {
-            console.error("Erro geral:", err);
-            alert("Erro ao adicionar ao carrinho");
+            console.error(err);
+            setAlerta({ tipo: "erro", mensagem: "Erro ao adicionar ao carrinho" });
         }
     };
+
+    useEffect(() => {
+        async function carregarRelacionados() {
+            try {
+                const res = await fetch(`${BASE_URL}products/catalog`);
+                const data = await res.json();
+
+                const lista = data?.data || data || [];
+                const nomeBase = produto?.nome?.toLowerCase() || "";
+
+                const filtrados = lista
+                    .filter(p =>
+                        p.id_produto !== Number(id_produto) &&
+                        nomeBase &&
+                        p.nome?.toLowerCase().includes(nomeBase.split(" ")[0])
+                    )
+                    .slice(0, 3);
+
+                const comImagem = await Promise.all(
+                    filtrados.map(async (p) => {
+                        try {
+                            const resFoto = await fetch(`${BASE_URL}product-photos/${p.id_produto}`);
+                            const dataFotos = await resFoto.json();
+
+                            const fotos = Array.isArray(dataFotos)
+                                ? dataFotos
+                                : dataFotos?.data || [];
+
+                            return {
+                                ...p,
+                                img: fotos.length > 0
+                                    ? `${BASE_URL}${fotos[0].caminho_url}`
+                                    : null
+                            };
+
+                        } catch {
+                            return { ...p, img: null };
+                        }
+                    })
+                );
+
+                setRelacionados(comImagem);
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        if (produto) carregarRelacionados();
+    }, [produto]);
 
     useEffect(() => {
         async function carregarProduto() {
@@ -97,7 +494,12 @@ function Produto() {
 
                 const resImagens = await fetch(`${BASE_URL}product-photos/${id_produto}`);
                 const dataImagens = await resImagens.json();
-                setImagens((dataImagens || []).map(img => `${BASE_URL}${img.caminho_url}`));
+
+                const imgs = Array.isArray(dataImagens)
+                    ? dataImagens
+                    : dataImagens?.data || [];
+
+                setImagens(imgs.map(img => `${BASE_URL}${img.caminho_url}`));
 
                 const resCores = await fetch(`${BASE_URL}product-colors/${id_produto}`);
                 const dataCores = await resCores.json();
@@ -107,25 +509,8 @@ function Produto() {
                 const dataGrades = await resGrades.json();
                 setTamanhos(Array.isArray(dataGrades) ? dataGrades : dataGrades.data || []);
 
-                const resTodos = await fetch(`${BASE_URL}products/catalog`);
-                const todosProdutos = (await resTodos.json()).data || [];
-
-                const relacionadosFiltrados = todosProdutos
-                    .filter(p =>
-                        p.id_produto !== dataProduto.id_produto &&
-                        (
-                            p.id_categoria === dataProduto.id_categoria ||
-                            p.nome.toLowerCase().includes(
-                                dataProduto.nome.split(" ")[0].toLowerCase()
-                            )
-                        )
-                    )
-                    .slice(0, 4);
-
-                setRelacionados(relacionadosFiltrados);
-
-            } catch (err) {
-                console.error("Erro ao carregar produto:", err);
+            } catch {
+                setProduto(null);
             } finally {
                 setLoading(false);
             }
@@ -142,8 +527,13 @@ function Produto() {
     return (
         <div className="produto-page">
 
-            <div className="produto-container">
+            {alerta && (
+                <div className={`alerta ${alerta.tipo}`}>
+                    {alerta.mensagem}
+                </div>
+            )}
 
+            <div className="produto-container">
                 <div className="produto-img">
                     <div className="thumbs">
                         {imagens.map((img, index) => (
@@ -157,69 +547,212 @@ function Produto() {
                             />
                         ))}
                     </div>
-
                     <div className="img-main">
                         {imgPadrao && <img src={imgPadrao} alt={produto.nome} />}
                     </div>
                 </div>
 
                 <div className="produto-info">
-
-                    {produto.mais_vendido && (
-                        <span className="badge">MAIS VENDIDO</span>
-                    )}
-
                     <h1>{produto.nome}</h1>
 
-                    <h2>
-                        R$ {Number(produto.preco_base ?? produto.preco).toLocaleString("pt-BR", {
-                            minimumFractionDigits: 2
-                        })}
-                    </h2>
+                    {avaliacaoResumo.total > 0 ? (
+                        <>
+                            {renderStars(avaliacaoResumo.media)}
+                            <small>
+                                {avaliacaoResumo.media.toFixed(1)} de 5.0 — {avaliacaoResumo.total} avaliações
+                            </small>
+                        </>
+                    ) : (
+                        <small>Sem avaliações</small>
+                    )}
+
+                    <div className="preco-box">
+                        <h2>
+                            R$ {precoFinal.toLocaleString("pt-BR", {
+                                minimumFractionDigits: 2
+                            })}
+                        </h2>
+                    </div>
 
                     <p>{produto.descricao}</p>
 
-                    {tamanhos.length > 0 && (
-                        <div className="produto-opcao">
-                            <span>TAMANHO</span>
-                            <div className="opcoes">
-                                {tamanhos.map(t => (
-                                    <button
-                                        key={t.id_produto_grade}
-                                        className={tamanhoSelecionado === t.id_produto_grade ? "active" : ""}
-                                        onClick={() => setTamanhoSelecionado(Number(t.id_produto_grade))}
-                                    >
-                                        {t.nome}
-                                    </button>
-                                ))}
-                            </div>
+                    <div className="produto-opcao">
+                        <span>TAMANHO</span>
+                        <div className="opcoes">
+                            {tamanhos.map(t => (
+                                <button
+                                    key={t.id_produto_grade}
+                                    className={tamanhoSelecionado === t.id_produto_grade ? "active" : ""}
+                                    onClick={() => setTamanhoSelecionado(Number(t.id_produto_grade))}
+                                >
+                                    {t.nome}
+                                </button>
+                            ))}
                         </div>
-                    )}
+                    </div>
 
-                    {cores.length > 0 && (
-                        <div className="produto-opcao">
-                            <span>COR</span>
-                            <div className="opcoes">
-                                {cores.map(c => (
-                                    <button
-                                        key={c.id_produto_cor}
-                                        className={corSelecionada === c.id_produto_cor ? "active" : ""}
-                                        onClick={() => setCorSelecionada(Number(c.id_produto_cor))}
-                                    >
-                                        {c.nome}
-                                    </button>
-                                ))}
-                            </div>
+                    <div className="produto-opcao">
+                        <span>COR</span>
+                        <div className="opcoes">
+                            {cores.map(c => (
+                                <button
+                                    key={c.id_produto_cor}
+                                    className={corSelecionada === c.id_produto_cor ? "active" : ""}
+                                    onClick={() => setCorSelecionada(Number(c.id_produto_cor))}
+                                >
+                                    {c.nome}
+                                </button>
+                            ))}
                         </div>
+                    </div>
+
+                    {!isAdmin && (
+                        <button className="btn-comprar" onClick={adicionarCarrinho}>
+                            ADICIONAR AO CARRINHO
+                        </button>
                     )}
-
-                    <button className="btn-comprar" onClick={adicionarCarrinho}>
-                        ADICIONAR AO CARRINHO
-                    </button>
-
                 </div>
             </div>
-        </div>
+
+            <div className="avaliacoes-section">
+
+                <div className="avaliacoes-header">
+
+                    <div className="resumo">
+                        <h2>AVALIAÇÕES</h2>
+
+                        {avaliacaoResumo.total > 0 && (
+                            <>
+                                {renderStars(avaliacaoResumo.media)}
+                                <small>
+                                    {avaliacaoResumo.media.toFixed(1)} de 5 — {avaliacaoResumo.total} avaliações
+                                </small>
+                            </>
+                        )}
+                    </div>
+
+                    {podeAvaliar && (
+                        <button onClick={() => setMostrarForm(!mostrarForm)}>
+                            {mostrarForm ? "Cancelar" : "Escrever avaliação"}
+                        </button>
+                    )}
+                </div>
+
+                {mostrarForm && (
+                    <div className="avaliacao-form">
+
+                        <span>Nome</span>
+                        <input
+                            placeholder="Digite seu Nome (Opcional)"
+                            value={novaAvaliacao.titulo}
+                            onChange={(e) =>
+                                setNovaAvaliacao({ ...novaAvaliacao, titulo: e.target.value })
+                            }
+                        />
+
+                        <span>Nota</span>
+                        {renderStars(novaAvaliacao.nota, true, (n) =>
+                            setNovaAvaliacao({ ...novaAvaliacao, nota: n })
+                        )}
+
+                        <input
+                            className="notaValue"
+                            type="number"
+                            step="0.5"
+                            min="0"
+                            max="5"
+                            value={novaAvaliacao.nota}
+                            onChange={handleNotaChange}
+                        />
+
+                        <textarea
+                            placeholder="Comentário"
+                            value={novaAvaliacao.comentario}
+                            onChange={(e) =>
+                                setNovaAvaliacao({ ...novaAvaliacao, comentario: e.target.value })
+                            }
+                        />
+
+                        <div className="avaliacao-imagens">
+                            <span>Fotos (máx 4)</span>
+
+                            <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handleFotosChange}
+                                disabled={fotosAvaliacao.length >= 4}
+                            />
+
+                            {fotosAvaliacao.length > 0 && (
+                                <div className="preview-imagens">
+                                    {fotosAvaliacao.map((img, index) => (
+                                        <img
+                                            key={index}
+                                            src={URL.createObjectURL(img)}
+                                            alt={`Imagem ${index + 1}`}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+
+                            {fotosAvaliacao.length >= 4 && (
+                                <small>Você pode adicionar até 4 imagens.</small>
+                            )}
+                        </div>
+
+                        <button onClick={enviarAvaliacao}>
+                            Enviar avaliação
+                        </button>
+                    </div>
+                )}
+
+                {avaliacoes.map((a, i) => (
+                    <div key={i} className="avaliacao-card">
+
+                        <div className="avaliacao-top">
+
+                            <div className="avaliacao-usuario">
+                                <strong>{a.titulo?.trim() || "Usuário Anônimo"}</strong>
+                                <span>Comentário: <br /></span>
+                            </div>
+
+                            {renderStars(a.nota)}
+                        </div>
+
+                        <p>{a.comentario}</p>
+                    </div>
+                ))}
+
+            </div>
+
+            <div className="relacionados">
+                <h2>Produtos relacionados</h2>
+
+                <div className="relacionados-grid">
+                    {relacionados.map(p => (
+                        <div className="relacionado-card" key={p.id_produto}>
+                            {p.img && <img src={p.img} alt={p.nome} />}
+
+                            <h3>{p.nome}</h3>
+
+                            <span>
+                                R$ {Number(p.preco_base ?? p.preco ?? 0).toLocaleString("pt-BR", {
+                                    minimumFractionDigits: 2
+                                })}
+                            </span>
+
+                            <Link to={`/produto/${p.id_produto}`}>
+                                <button className="btn-ver-produto">
+                                    Ver produto
+                                </button>
+                            </Link>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+        </div >
     );
 }
 

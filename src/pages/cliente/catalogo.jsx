@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "../../css/cliente/catalogo.css";
-import { Filter } from "lucide-react";
+import { Filter, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 function Catalogo() {
@@ -13,9 +13,10 @@ function Catalogo() {
 
     const [pagina, setPagina] = useState(1);
     const [totalPaginas, setTotalPaginas] = useState(1);
+    const [avaliacoes, setAvaliacoes] = useState({});
 
     const navigate = useNavigate();
-    const BASE_URL = "http://localhost:3000/";
+    const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
     async function carregarProdutos(pag = 1) {
         try {
@@ -43,8 +44,38 @@ function Catalogo() {
             setProdutos(produtosTratados);
             setTotalPaginas(data.pagination?.totalPages || 1);
 
+            carregarAvaliacoes(produtosTratados);
         } catch (err) {
             console.error("Erro produtos:", err);
+        }
+    }
+
+    async function carregarAvaliacoes(produtosLista) {
+        try {
+            const avaliacoesTemp = {};
+
+            await Promise.all(
+                produtosLista.map(async (prod) => {
+                    try {
+                        const res = await fetch(`${BASE_URL}product-reviews/${prod.id_produto}`);
+                        const data = await res.json();
+
+                        const lista = Array.isArray(data) ? data : data?.data || [];
+
+                        if (lista.length > 0) {
+                            const soma = lista.reduce((acc, av) => acc + Number(av.nota || 0), 0);
+                            const media = soma / lista.length;
+
+                            avaliacoesTemp[prod.id_produto] = media;
+                        }
+                    } catch { }
+                })
+            );
+
+            setAvaliacoes(avaliacoesTemp);
+
+        } catch (err) {
+            console.error("Erro avaliações:", err);
         }
     }
 
@@ -56,6 +87,23 @@ function Catalogo() {
         } catch (err) {
             console.error("Erro categorias:", err);
         }
+    }
+
+    function renderStars(media) {
+        const nota = Number(media) || 0;
+
+        return (
+            <div className="stars">
+                {[1, 2, 3, 4, 5].map(i => (
+                    <Star
+                        key={i}
+                        size={14}
+                        fill={i <= Math.round(nota) ? "#facc15" : "#e5e5e5"}
+                        stroke="none"
+                    />
+                ))}
+            </div>
+        );
     }
 
     useEffect(() => {
@@ -73,8 +121,8 @@ function Catalogo() {
     });
 
     return (
-        <div className="catalog-page">
 
+        <div className="catalog-page">
             <section className="catalog-hero">
                 <span>EXPLORE</span>
                 <h1>CATÁLOGO</h1>
@@ -162,6 +210,9 @@ function Catalogo() {
 
                                     <div className="product-info">
                                         <h3>{prod.nome}</h3>
+
+                                        {renderStars(avaliacoes[prod.id_produto])}
+
                                         <span>
                                             R$ {Number(prod.preco_base || 0).toLocaleString("pt-BR", {
                                                 minimumFractionDigits: 2

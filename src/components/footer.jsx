@@ -42,9 +42,9 @@ function Footer() {
 
                         <div className="footer-links">
                             <h4>LINKS</h4>
-                            <a href="#">Início</a>
-                            <a href="#">Carrinho</a>
-                            <a href="#">Minha Conta</a>
+                            <Link to="/">Início</Link>
+                            <Link to="/carrinho">Carrinho</Link>
+                            <Link to="/cliente">Minha Conta</Link>
                         </div>
 
                         <div className="footer-contato">
