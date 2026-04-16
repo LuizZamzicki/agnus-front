@@ -17,6 +17,8 @@ function Produto() {
         0
     );
 
+    const [mostrarForm, setMostrarForm] = useState(false);
+
     const isAdmin =
         auth?.user?.tipo === "administrador" ||
         auth?.tipo === "administrador";
@@ -31,9 +33,15 @@ function Produto() {
     const [loading, setLoading] = useState(true);
     const [alerta, setAlerta] = useState(null);
 
-    const [fotosAvaliacao, setFotosAvaliacao] = useState([]);
-
     const [podeAvaliar, setPodeAvaliar] = useState(false);
+
+    const [fotosAvaliacao, setFotosAvaliacao] = useState([]);
+    const [novaAvaliacao, setNovaAvaliacao] = useState({
+        nome: "",
+        nota: 0,
+        comentario: "",
+        imagens: []
+    });
 
     const [avaliacoes, setAvaliacoes] = useState([]);
     const [avaliacaoResumo, setAvaliacaoResumo] = useState({
@@ -41,15 +49,11 @@ function Produto() {
         total: 0
     });
 
-    const [mostrarForm, setMostrarForm] = useState(false);
-
-    const [novaAvaliacao, setNovaAvaliacao] = useState({
-        titulo: "",
-        nota: 0,
-        nome: "",
-        comentario: "",
-        imagens: []
-    });
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
+    const [lightboxImages, setLightboxImages] = useState([]);
+    const imagensValidas = imagens.filter(Boolean);
+    const imgPadrao = imagensValidas[0] || null;
 
     const corObj = cores.find(c => Number(c.id_produto_cor) === Number(corSelecionada));
     const gradeObj = tamanhos.find(t => Number(t.id_produto_grade) === Number(tamanhoSelecionado));
@@ -66,15 +70,23 @@ function Produto() {
         }
     }, [alerta]);
 
+    const abrirLightbox = (imagens, index) => {
+        setLightboxImages(imagens);
+        setLightboxIndex(index);
+        setLightboxOpen(true);
+    };
+
     function renderStars(media = 0, clickable = false, onClick = null) {
+        const valor = Number(media) || 0;
+
         return (
             <div className="rating">
                 {[1, 2, 3, 4, 5].map((i) => {
                     let className = "star";
 
-                    if (i <= Math.floor(media)) {
+                    if (i <= Math.floor(valor)) {
                         className = "star filled";
-                    } else if (i === Math.floor(media) + 1 && media % 1 !== 0) {
+                    } else if (i === Math.floor(valor) + 1 && valor % 1 !== 0) {
                         className = "star half";
                     }
 
@@ -83,7 +95,7 @@ function Produto() {
                             key={i}
                             size={18}
                             className={className}
-                            onClick={() => clickable && onClick(i)}
+                            onClick={() => clickable && onClick?.(i)}
                             style={{ cursor: clickable ? "pointer" : "default" }}
                         />
                     );
@@ -141,11 +153,12 @@ function Produto() {
     };
 
     const handleFotosChange = (e) => {
-        const files = Array.from(e.target.files);
+        const files = Array.from(e.target.files || []);
 
-        const novasFotos = [...fotosAvaliacao, ...files].slice(0, 4);
-
-        setFotosAvaliacao(novasFotos);
+        setFotosAvaliacao((prev) => {
+            const novas = [...prev, ...files];
+            return novas.slice(0, 4);
+        });
     };
 
     useEffect(() => {
@@ -228,18 +241,49 @@ function Produto() {
 
                 const lista = Array.isArray(data) ? data : data?.data || [];
 
-                setAvaliacoes(lista);
+                const avaliacoesComFotos = await Promise.all(
+                    lista.map(async (av) => {
+                        try {
+                            const resFotos = await fetch(
+                                `${BASE_URL}product-review-photos/${av.id_avaliacao_produto}`
+                            );
 
-                if (lista.length === 0) {
+                            const fotosData = await resFotos.json();
+
+                            const fotos = Array.isArray(fotosData)
+                                ? fotosData
+                                : fotosData?.data || [];
+
+                            const imagensValidas = fotos
+                                .map(f => f.caminho_url)
+                                .filter(url => url && url.trim() !== "")
+                                .map(url => `${BASE_URL}${url}`);
+
+                            return {
+                                ...av,
+                                imagens: imagensValidas
+                            };
+                        } catch {
+                            return { ...av, imagens: [] };
+                        }
+                    })
+                );
+
+                setAvaliacoes(avaliacoesComFotos);
+
+                if (avaliacoesComFotos.length === 0) {
                     setAvaliacaoResumo({ media: 0, total: 0 });
                     return;
                 }
 
-                const soma = lista.reduce((acc, r) => acc + Number(r.nota || 0), 0);
+                const soma = avaliacoesComFotos.reduce(
+                    (acc, r) => acc + Number(r.nota || 0),
+                    0
+                );
 
                 setAvaliacaoResumo({
-                    media: soma / lista.length,
-                    total: lista.length
+                    media: soma / avaliacoesComFotos.length,
+                    total: avaliacoesComFotos.length
                 });
 
             } catch (err) {
@@ -272,50 +316,43 @@ function Produto() {
             auth?.nome ||
             "Usuário";
 
-        const avaliacao = {
+        const payload = {
             id_produto,
             id_usuario,
-            nota: novaAvaliacao.nota,
+            nota: Number(novaAvaliacao.nota),
             nome: nomeFinal,
-            comentario: novaAvaliacao.comentario
+            comentario: novaAvaliacao.comentario.trim()
         };
 
         try {
             const res = await fetch(`${BASE_URL}product-reviews`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(avaliacao)
+                body: JSON.stringify(payload)
             });
 
+            const data = await res.json();
+
             if (!res.ok) {
-                const errorData = await res.json();
-                console.error('Erro na requisição:', errorData);
-                throw new Error(errorData.message || 'Erro desconhecido');
+                throw new Error(data.message || "Erro ao enviar avaliação");
             }
 
-            const avaliacaoCriada = await res.json();
-            const id_avaliacao_produto = avaliacaoCriada.id_avaliacao_produto;
+            const id_avaliacao_produto =
+                data.id_avaliacao_produto ||
+                data.id ||
+                data.data?.id_avaliacao_produto;
 
-            if (fotosAvaliacao.length > 0) {
-                const fotos_upload = await Promise.all(
-                    fotosAvaliacao.map(async (file, index) => ({
-                        upload_index: index,
-                        nome_original: file.name,
-                        tipo_arquivo: file.type || null,
-                        tamanho_bytes: file.size || 0,
-                        arquivo_base64: await lerArquivoComoDataUrl(file)
-                    }))
-                );
+            if (fotosAvaliacao.length > 0 && id_avaliacao_produto) {
+                const formData = new FormData();
+                formData.append("id_avaliacao_produto", id_avaliacao_produto);
+
+                fotosAvaliacao.forEach((file) => {
+                    formData.append("files", file);
+                });
 
                 await fetch(`${BASE_URL}product-review-photos`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        id_avaliacao_produto,
-                        fotos_upload
-                    })
+                    body: formData
                 });
             }
 
@@ -326,8 +363,9 @@ function Produto() {
             setFotosAvaliacao([]);
 
             const updated = await fetch(`${BASE_URL}product-reviews/${id_produto}`);
-            const data = await updated.json();
-            setAvaliacoes(data);
+            const lista = await updated.json();
+
+            setAvaliacoes(Array.isArray(lista) ? lista : lista?.data || []);
 
         } catch (err) {
             setAlerta({ tipo: "erro", mensagem: "Erro ao enviar avaliação: " + err.message });
@@ -522,8 +560,6 @@ function Produto() {
     if (loading) return <p>Carregando produto...</p>;
     if (!produto) return <p>Produto não encontrado.</p>;
 
-    const imgPadrao = imagens[0] || null;
-
     return (
         <div className="produto-page">
 
@@ -535,21 +571,35 @@ function Produto() {
 
             <div className="produto-container">
                 <div className="produto-img">
+
                     <div className="thumbs">
-                        {imagens.map((img, index) => (
+                        {imagensValidas.map((img, index) => (
                             <img
                                 key={index}
                                 src={img}
-                                onClick={() =>
-                                    setImagens([img, ...imagens.filter(i => i !== img)])
-                                }
-                                className={img === imgPadrao ? "active" : ""}
+                                onClick={() => abrirLightbox(imagensValidas, index)}
+                                className={img === lightboxImages[0] ? "active" : ""}
+                                alt={produto.nome}
                             />
                         ))}
                     </div>
+
                     <div className="img-main">
-                        {imgPadrao && <img src={imgPadrao} alt={produto.nome} />}
+                        {imgPadrao && (
+                            <img
+                                src={imgPadrao}
+                                alt={produto.nome}
+                                onClick={() =>
+                                    abrirLightbox(
+                                        imagensValidas,
+                                        imagensValidas.findIndex(i => i === imgPadrao)
+                                    )
+                                }
+                                style={{ cursor: "zoom-in" }}
+                            />
+                        )}
                     </div>
+
                 </div>
 
                 <div className="produto-info">
@@ -711,7 +761,6 @@ function Produto() {
                     <div key={i} className="avaliacao-card">
 
                         <div className="avaliacao-top">
-
                             <div className="avaliacao-usuario">
                                 <strong>{a.titulo?.trim() || "Usuário Anônimo"}</strong>
                                 <span>Comentário: <br /></span>
@@ -721,6 +770,25 @@ function Produto() {
                         </div>
 
                         <p>{a.comentario}</p>
+
+                        {a.imagens?.length > 0 && (
+                            <div className="avaliacao-imagens-lista">
+                                {a.imagens
+                                    .filter(img => img && img.trim() !== "")
+                                    .map((img, idx) => (
+                                        <img
+                                            key={idx}
+                                            src={img}
+                                            alt=""
+                                            className="avaliacao-img"
+                                            onClick={() => abrirLightbox(a.imagens, idx)}
+                                            onError={(e) => (e.currentTarget.style.display = "none")}
+                                            style={{ cursor: "zoom-in" }}
+                                        />
+                                    ))}
+                            </div>
+                        )}
+
                     </div>
                 ))}
 
@@ -752,7 +820,56 @@ function Produto() {
                 </div>
             </div>
 
+            {lightboxOpen && (
+                <div
+                    className="lightbox"
+                    onClick={() => setLightboxOpen(false)}
+                >
+                    <button
+                        className="lightbox-close"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setLightboxOpen(false);
+                        }}
+                    >
+                        ✕
+                    </button>
+
+                    <button
+                        className="lightbox-prev"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setLightboxIndex((prev) =>
+                                prev === 0 ? lightboxImages.length - 1 : prev - 1
+                            );
+                        }}
+                    >
+                        ‹
+                    </button>
+
+                    <img
+                        src={lightboxImages[lightboxIndex]}
+                        className="lightbox-img"
+                        alt=""
+                        onClick={(e) => e.stopPropagation()}
+                    />
+
+                    <button
+                        className="lightbox-next"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setLightboxIndex((prev) =>
+                                prev === lightboxImages.length - 1 ? 0 : prev + 1
+                            );
+                        }}
+                    >
+                        ›
+                    </button>
+                </div>
+            )}
+
         </div >
+
     );
 }
 

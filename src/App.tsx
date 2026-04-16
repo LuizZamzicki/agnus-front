@@ -18,6 +18,8 @@ import ClienteContatos from "./pages/cliente/clienteContatos";
 
 import Admin from "./pages/admin/admin";
 import Login from "./pages/login";
+import NotFound from "./pages/notFound";
+
 
 function hasAuth() {
   const token = localStorage.getItem("auth_token");
@@ -84,7 +86,7 @@ function App() {
           }
         />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
 
       {!hideLayout && <Footer />}
