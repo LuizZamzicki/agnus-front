@@ -52,7 +52,25 @@
   white-space: nowrap;
 }
 
+.admin-btn-novo-pedido {
+  height: var(--admin-control-h);
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-left: 5px;
+  padding: 0 16px;
+  white-space: nowrap;
+}
+
 .admin-btn-novo,
+.admin-btn-novo-pedido,
 .admin-form-btn-primary {
   background: #c99f59;
   border-color: #c99f59;
@@ -60,12 +78,14 @@
 }
 
 .admin-btn-novo:hover,
+.admin-btn-novo-pedido:hover,
 .admin-form-btn-primary:hover {
   background: #b48842;
   border-color: #b48842;
 }
 
 .admin-btn-novo:disabled,
+.admin-btn-novo-pedido:disabled,
 .admin-form-btn-primary:disabled {
   opacity: 0.55;
   cursor: not-allowed;
@@ -237,11 +257,11 @@
   align-items: end;
 }
 
-.admin-form-row > .admin-form-group {
+.admin-form-row>.admin-form-group {
   grid-column: span 4;
 }
 
-.admin-form-row > .admin-form-btn-add {
+.admin-form-row>.admin-form-btn-add {
   grid-column: span 4;
   width: 100%;
 }
@@ -269,7 +289,7 @@ select.admin-form-input {
   appearance: none;
 }
 
-.admin-form-group > div.admin-form-input {
+.admin-form-group>div.admin-form-input {
   display: flex;
   align-items: center;
 }
@@ -487,10 +507,10 @@ select.admin-form-input {
   margin: 0;
 }
 
-.admin-grade-new-form > .admin-form-group,
-.admin-grade-new-form > .admin-form-btn-add,
-.admin-color-new-form > .admin-form-group,
-.admin-color-new-form > .admin-form-btn-add {
+.admin-grade-new-form>.admin-form-group,
+.admin-grade-new-form>.admin-form-btn-add,
+.admin-color-new-form>.admin-form-group,
+.admin-color-new-form>.admin-form-btn-add {
   grid-column: auto;
 }
 
@@ -755,8 +775,8 @@ select.admin-form-input {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .admin-form-row > .admin-form-group,
-  .admin-form-row > .admin-form-btn-add {
+  .admin-form-row>.admin-form-group,
+  .admin-form-row>.admin-form-btn-add {
     grid-column: span 6;
   }
 
@@ -805,8 +825,8 @@ select.admin-form-input {
     grid-template-columns: 1fr;
   }
 
-  .admin-form-row > .admin-form-group,
-  .admin-form-row > .admin-form-btn-add {
+  .admin-form-row>.admin-form-group,
+  .admin-form-row>.admin-form-btn-add {
     grid-column: auto;
   }
 

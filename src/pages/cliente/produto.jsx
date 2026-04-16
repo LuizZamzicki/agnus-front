@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import "../../css/cliente/produto.css";
 
 function Produto() {
@@ -16,6 +17,8 @@ function Produto() {
         auth?.id ||
         0
     );
+
+    const navigate = useNavigate();
 
     const [mostrarForm, setMostrarForm] = useState(false);
 
@@ -380,6 +383,11 @@ function Produto() {
 
         if (!id_usuario) {
             setAlerta({ tipo: "erro", mensagem: "Faça login para continuar" });
+
+            setTimeout(() => {
+                navigate(`/login?redirect=/produto/${id_produto}`);
+            }, 1500);
+
             return;
         }
 

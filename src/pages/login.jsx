@@ -71,19 +71,52 @@ function Login() {
       return;
     }
 
+    if (!token) {
+      console.log("Token não encontrado na URL");
+    }
+
+    if (!tipo) {
+      console.log("Tipo não encontrado na URL");
+    }
+
     if (token && tipo) {
-      const payload = parseJwt(token);
+      try {
+        const payload = parseJwt(token);
 
-      if (!payload?.id_usuario) {
+        if (!payload?.id_usuario) {
+          setError("Erro ao autenticar com Google.");
+          return;
+        }
+
+        localStorage.setItem("auth_token", token);
+
+        localStorage.setItem(
+          "auth",
+          JSON.stringify({
+            token,
+            ...payload,
+            tipo,
+            user: payload
+          })
+        );
+
+        const redirect = searchParams.get("redirect");
+
+        const destino =
+          tipo === "administrador"
+            ? "/admin"
+            : redirect || "/";
+
+        navigate(destino, {
+          replace: true,
+        });
+
+      } catch (err) {
+        console.error(err);
         setError("Erro ao autenticar com Google.");
-        return;
       }
-
-      localStorage.setItem("auth_token", token);
-
-      navigate(tipo === "administrador" ? "/admin" : "/", {
-        replace: true,
-      });
+    } else {
+      console.log("Login Google não detectado nessa URL.");
     }
   }, [searchParams, navigate]);
 
@@ -200,6 +233,7 @@ function Login() {
         });
 
         const data = await response.json().catch(() => ({}));
+        const redirect = searchParams.get("redirect");
 
         if (!response.ok) {
           setError(data?.message || "Credenciais inválidas.");
@@ -213,9 +247,12 @@ function Login() {
         localStorage.setItem("auth", JSON.stringify(data));
         if (token) localStorage.setItem("auth_token", token);
 
-        navigate(data.tipo === "administrador" ? "/admin" : "/", {
-          replace: true,
-        });
+        navigate(
+          data.tipo === "administrador"
+            ? "/admin"
+            : redirect || "/",
+          { replace: true }
+        );
       }
     } catch {
       setError("Erro ao conectar com servidor.");
@@ -225,7 +262,10 @@ function Login() {
   }
 
   function handleGoogleLogin() {
-    window.location.href = `${API_BASE}auth/google`;
+    const redirect = searchParams.get("redirect") || "/";
+
+    window.location.href =
+      `${API_BASE}auth/google?redirect=${encodeURIComponent(redirect)}`;
   }
 
   return (
