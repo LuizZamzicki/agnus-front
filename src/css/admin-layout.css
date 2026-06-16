@@ -60,6 +60,8 @@
   text-decoration: none;
   color: white;
   font-size: larger;
+  padding: 10px;
+  margin-bottom: 50px;
 }
 
 .admin-sidebar__header h3 {

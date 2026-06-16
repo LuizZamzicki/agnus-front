@@ -237,7 +237,11 @@ function ClienteEnderecos() {
         <>
             <div className="enderecos-header">
                 <h2>Meus Endereços</h2>
-                <button className="btn-novo" onClick={abrirNovo}>
+                <button
+                    data-cy="novo-endereco"
+                    className="btn-novo"
+                    onClick={abrirNovo}
+                >
                     + Novo endereço
                 </button>
             </div>
@@ -245,6 +249,7 @@ function ClienteEnderecos() {
             <div className="enderecos-grid">
                 {enderecos.map((e) => (
                     <div
+                        data-cy="endereco-card"
                         key={e.id_usuario_endereco}
                         className={`endereco-card ${e.principal ? "principal" : ""}`}
                         onClick={() => {
@@ -267,11 +272,11 @@ function ClienteEnderecos() {
                         )}
 
                         <div className="acoes">
-                            <span onClick={(ev) => { ev.stopPropagation(); abrirEditar(e); }}>
+                            <span data-cy="editar-endereco" onClick={(ev) => { ev.stopPropagation(); abrirEditar(e); }}>
                                 Editar
                             </span>
 
-                            <span onClick={(ev) => {
+                            <span data-cy="excluir-endereco" onClick={(ev) => {
                                 ev.stopPropagation();
                                 setConfirmDelete(e);
                             }}>
@@ -293,6 +298,7 @@ function ClienteEnderecos() {
                         <div className="form-group">
                             <label>CEP *</label>
                             <input
+                                data-cy="cep"
                                 placeholder="00000-000"
                                 value={form.cep}
                                 onChange={(e) => setForm({ ...form, cep: e.target.value })}
@@ -302,6 +308,7 @@ function ClienteEnderecos() {
                         <div className="form-group">
                             <label>Logradouro *</label>
                             <input
+                                data-cy="logradouro"
                                 placeholder="Rua, Avenida..."
                                 value={form.logradouro}
                                 onChange={(e) =>
@@ -314,6 +321,7 @@ function ClienteEnderecos() {
                             <div className="form-group">
                                 <label>Número *</label>
                                 <input
+                                    data-cy="numero"
                                     placeholder="123"
                                     value={form.numero}
                                     onChange={(e) =>
@@ -325,6 +333,8 @@ function ClienteEnderecos() {
                             <div className="form-group">
                                 <label>Bairro *</label>
                                 <input
+                                    data-cy="bairro"
+                                    placeholder="Bairro"
                                     value={form.bairro}
                                     onChange={(e) =>
                                         setForm({ ...form, bairro: e.target.value })
@@ -336,6 +346,7 @@ function ClienteEnderecos() {
                         <div className="form-group">
                             <label>Complemento</label>
                             <input
+                                data-cy="complemento"
                                 placeholder="Apto, bloco..."
                                 value={form.complemento}
                                 onChange={(e) =>
@@ -348,6 +359,7 @@ function ClienteEnderecos() {
                             <div className="form-group">
                                 <label>Cidade *</label>
                                 <input
+                                    data-cy="cidade"
                                     value={form.cidade}
                                     onChange={(e) =>
                                         setForm({ ...form, cidade: e.target.value })
@@ -358,6 +370,7 @@ function ClienteEnderecos() {
                             <div className="form-group">
                                 <label>Estado *</label>
                                 <select
+                                    data-cy="estado"
                                     value={form.estado}
                                     onChange={(e) =>
                                         setForm({ ...form, estado: e.target.value })
@@ -374,10 +387,10 @@ function ClienteEnderecos() {
                         </div>
 
                         <div className="modal-actions">
-                            <button onClick={() => setModalOpen(false)}>
+                            <button onClick={() => setModalOpen(false)} data-cy="cancelar-endereco">
                                 Cancelar
                             </button>
-                            <button onClick={handleSave}>
+                            <button onClick={handleSave} data-cy="salvar-endereco">
                                 Salvar
                             </button>
                         </div>
@@ -392,11 +405,13 @@ function ClienteEnderecos() {
                         <p>Deseja tornar este o endereço principal?</p>
 
                         <div className="modal-actions">
-                            <button onClick={() => setConfirmPrincipal(null)}>Cancelar</button>
+                            <button onClick={() => setConfirmPrincipal(null)} data-cy="cancelar-definir-principal">
+                                Cancelar
+                            </button>
                             <button onClick={() => {
                                 marcarPrincipal(confirmPrincipal.id_usuario_endereco);
                                 setConfirmPrincipal(null);
-                            }}>
+                            }} data-cy="confirmar-definir-principal">
                                 Confirmar
                             </button>
                         </div>
@@ -411,7 +426,9 @@ function ClienteEnderecos() {
                         <p>Tem certeza que deseja excluir este endereço?</p>
 
                         <div className="modal-actions">
-                            <button onClick={() => setConfirmDelete(null)}>Cancelar</button>
+                            <button onClick={() => setConfirmDelete(null)} data-cy="cancelar-excluir-endereco">
+                                Cancelar
+                            </button>
                             <button className="danger"
                                 onClick={() => handleDelete(confirmDelete.id_usuario_endereco)}>
                                 Excluir

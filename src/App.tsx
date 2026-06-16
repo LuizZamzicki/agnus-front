@@ -63,9 +63,18 @@ function App() {
 
       <Routes>
         <Route path="/" element={<Home />} />
+
         <Route path="/catalogo" element={<Catalogo />} />
+        <Route path="/produtos" element={<Catalogo />} />
+
         <Route path="/carrinho" element={<Carrinho />} />
         <Route path="/produto/:id_produto" element={<Produto />} />
+
+        <Route path="/perfil" element={<ClientePerfil />} />
+        <Route path="/pedidos" element={<ClientePedidos />} />
+        <Route path="/enderecos" element={<ClienteEnderecos />} />
+        <Route path="/contatos" element={<ClienteContatos />} />
+        <Route path="/senha" element={<ClienteSenha />} />
 
         <Route path="/cliente" element={<Cliente />}>
           <Route index element={<ClientePerfil />} />

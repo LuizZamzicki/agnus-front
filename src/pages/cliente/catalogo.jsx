@@ -136,6 +136,7 @@ function Catalogo() {
 
                     <input
                         type="text"
+                        data-cy="buscar-produto"
                         placeholder="Buscar produto..."
                         value={busca}
                         onChange={(e) => {
@@ -174,7 +175,7 @@ function Catalogo() {
 
                     <div className="filter-group">
                         <span>ORDENAR POR</span>
-                        <select onChange={(e) => setOrdem(e.target.value)}>
+                        <select onChange={(e) => setOrdem(e.target.value)} data-cy="ordenar">
                             <option value="relevancia">Relevância</option>
                             <option value="menor">Menor preço</option>
                             <option value="maior">Maior preço</option>
@@ -197,15 +198,25 @@ function Catalogo() {
                             const imgHover = prod.imagens?.[1] || imgPadrao;
 
                             return (
-                                <div className="product-card" key={prod.id_produto}>
-
-                                    {prod.mais_vendido && (
-                                        <span className="tag">MAIS VENDIDO</span>
-                                    )}
-
+                                <div
+                                    data-cy="produto-card"
+                                    className="product-card"
+                                    key={prod.id_produto}
+                                    onClick={() => navigate(`/produto/${prod.id_produto}`)}
+                                    style={{ cursor: "pointer" }}
+                                >
                                     <div className="product-image">
-                                        <img src={imgPadrao} className="img-default" />
-                                        <img src={imgHover} className="img-hover" />
+                                        <img
+                                            src={imgPadrao}
+                                            className="img-default"
+                                            onError={(e) => (e.target.src = imgPadrao)}
+                                        />
+
+                                        <img
+                                            src={imgHover}
+                                            className="img-hover"
+                                            onError={(e) => (e.target.src = imgHover)}
+                                        />
                                     </div>
 
                                     <div className="product-info">
@@ -219,13 +230,6 @@ function Catalogo() {
                                             })}
                                         </span>
                                     </div>
-
-                                    <div className="product-hover">
-                                        <button onClick={() => navigate(`/produto/${prod.id_produto}`)}>
-                                            VER PRODUTO
-                                        </button>
-                                    </div>
-
                                 </div>
                             );
                         })}

@@ -77,6 +77,7 @@ function AdminMenuLateral() {
 
       <nav className="admin-sidebar__nav">
         <button
+          data-cy="menu-dashboard"
           className={`admin-nav-item ${activeMenu === "dashboard" ? "active" : ""}`}
           onClick={() => irParaMenu("dashboard")}
         >
@@ -85,6 +86,7 @@ function AdminMenuLateral() {
         </button>
 
         <button
+          data-cy="menu-usuarios"
           className={`admin-nav-item ${activeMenu === "usuarios" ? "active" : ""}`}
           onClick={() => irParaMenu("usuarios")}
         >
@@ -94,6 +96,7 @@ function AdminMenuLateral() {
 
         <div className="admin-nav-group">
           <button
+            data-cy="menu-produtos"
             className={`admin-nav-item ${activeMenu?.startsWith("produtos") ? "active" : ""}`}
             onClick={() => toggleSubmenu("produtos")}
           >
@@ -107,6 +110,7 @@ function AdminMenuLateral() {
           {expandedMenu === "produtos" && (
             <div className="admin-nav-submenu">
               <button
+                data-cy="submenu-listar-produtos"
                 className={`admin-nav-subitem ${activeMenu === "produtos-listar" ? "active" : ""}`}
                 onClick={() => irParaMenu("produtos-listar")}
               >
@@ -114,6 +118,7 @@ function AdminMenuLateral() {
                 <span className="admin-nav-label">Listar Produtos</span>
               </button>
               <button
+                data-cy="submenu-categorias"
                 className={`admin-nav-subitem ${activeMenu === "produtos-categoria" ? "active" : ""}`}
                 onClick={() => irParaMenu("produtos-categoria")}
               >
@@ -125,6 +130,7 @@ function AdminMenuLateral() {
         </div>
 
         <button
+          data-cy="menu-pedidos"
           className={`admin-nav-item ${activeMenu === "pedidos" ? "active" : ""}`}
           onClick={() => irParaMenu("pedidos")}
         >
@@ -134,7 +140,7 @@ function AdminMenuLateral() {
       </nav>
 
       <div className="admin-sidebar__footer">
-        <button className="admin-nav-item logout" onClick={handleLogout}>
+        <button data-cy="menu-logout" className="admin-nav-item logout" onClick={handleLogout}>
           <LogOut className="admin-nav-icon" size={20} />
           <span className="admin-nav-label">Sair</span>
         </button>

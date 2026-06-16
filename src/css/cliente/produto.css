@@ -1,6 +1,6 @@
 .produto-page {
     max-width: 1200px;
-    margin: 60px auto;
+    margin: 120px auto;
     padding: 0 20px;
 }
 
@@ -15,6 +15,27 @@
     display: grid;
     grid-template-columns: 80px 1fr;
     gap: 15px;
+}
+
+.indisponivel {
+    background: #ddd;
+    color: #777;
+    cursor: not-allowed;
+}
+
+.btn-comprar:disabled {
+    opacity: .7;
+    cursor: not-allowed;
+}
+
+.sem-avaliacoes {
+    padding: 30px;
+    text-align: center;
+    background: #f8f8f8;
+    border-radius: 12px;
+    color: #666;
+    font-size: 15px;
+    margin-top: 20px;
 }
 
 .thumbs {
@@ -199,11 +220,16 @@
     text-align: center;
     transition: 0.3s;
     background: #fff;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: 0.25s ease;
 }
 
 .relacionado-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+
 }
 
 .relacionado-card img {

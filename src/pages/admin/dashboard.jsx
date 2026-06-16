@@ -231,7 +231,7 @@ function AdminDashboard() {
         {cards.map((card) => {
           const Icone = card.icone;
           return (
-            <div key={card.titulo} className="admin-stat-card" style={{ borderTopColor: card.cor }}>
+            <div data-cy="dashboard-card" key={card.titulo} className="admin-stat-card" style={{ borderTopColor: card.cor }}>
               <Icone className="admin-stat-icon" size={32} />
               <div className="admin-stat-info">
                 <span className="admin-stat-label">{card.titulo}</span>
@@ -249,7 +249,7 @@ function AdminDashboard() {
       )}
 
       <section className="admin-section">
-        <div className="admin-section__header">
+        <div data-cy="dashboard-title" className="admin-section__header">
           <h2>Ultimas Acoes</h2>
         </div>
 
@@ -262,7 +262,7 @@ function AdminDashboard() {
             {acoesRecentes.map((acao) => {
               const Icone = acao.icone;
               return (
-                <div key={acao.id} className="admin-activity-item">
+                <div data-cy="atividade-item" key={acao.id} className="admin-activity-item">
                   <div className="admin-activity-icon-wrap">
                     <Icone className="admin-activity-icon" size={18} />
                   </div>

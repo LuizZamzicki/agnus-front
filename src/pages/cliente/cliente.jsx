@@ -30,6 +30,7 @@ function Cliente() {
                 <aside className="perfil-menu">
 
                     <Link
+                        data-cy="menu-perfil"
                         to=""
                         className={`menu-item ${location.pathname === "/cliente" ? "active" : ""}`}
                     >
@@ -38,6 +39,7 @@ function Cliente() {
                     </Link>
 
                     <Link
+                        data-cy="menu-pedidos"
                         to="pedidos"
                         className={`menu-item ${isActive("/cliente/pedidos") ? "active" : ""}`}
                     >
@@ -46,6 +48,7 @@ function Cliente() {
                     </Link>
 
                     <Link
+                        data-cy="menu-enderecos"
                         to="enderecos"
                         className={`menu-item ${isActive("/cliente/enderecos") ? "active" : ""}`}
                     >
@@ -54,6 +57,7 @@ function Cliente() {
                     </Link>
 
                     <Link
+                        data-cy="menu-contatos"
                         to="contatos"
                         className={`menu-item ${isActive("/cliente/contatos") ? "active" : ""}`}
                     >
@@ -63,6 +67,7 @@ function Cliente() {
 
                     {!isGoogleUser && (
                         <Link
+                            data-cy="menu-senha"
                             to="senha"
                             className={`menu-item ${isActive("/cliente/senha") ? "active" : ""}`}
                         >
@@ -71,7 +76,7 @@ function Cliente() {
                         </Link>
                     )}
 
-                    <div className="menu-item logout" onClick={handleLogout}>
+                    <div data-cy="logout" className="menu-item logout" onClick={handleLogout}>
                         <FiLogOut className="menu-icon" />
                         Sair
                     </div>
@@ -83,7 +88,7 @@ function Cliente() {
                 </section>
 
             </div>
-        </main>
+        </main >
     );
 }
 

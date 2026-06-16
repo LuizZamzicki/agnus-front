@@ -18,7 +18,6 @@
     "react-router-dom": "^7.13.1",
     "react-scripts": "5.0.1",
     "swiper": "^12.1.2",
-    "typescript": "^6.0.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -47,7 +46,9 @@
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
+    "cypress": "^15.17.0",
     "test": "^3.3.0",
-    "ts-jest": "^29.4.6"
+    "ts-jest": "^29.4.6",
+    "typescript": "^4.9.5"
   }
 }

@@ -159,6 +159,7 @@ function AdminPedidoLista() {
       <div className="admin-products-header">
         <div className="admin-list-filters">
           <input
+            data-cy="buscar-pedido"
             type="search"
             className="admin-form-input admin-list-filter-input"
             placeholder="Buscar por ID, cliente ou status"
@@ -166,6 +167,7 @@ function AdminPedidoLista() {
             onChange={(e) => setPedidosBuscaFiltro(e.target.value)}
           />
           <select
+            data-cy="filtro-status-pedido"
             className="admin-form-input admin-list-filter-select"
             value={pedidosStatusFiltro}
             onChange={(e) => setPedidosStatusFiltro(e.target.value)}
@@ -212,7 +214,7 @@ function AdminPedidoLista() {
         </div>
       ) : (
         <>
-          <div className="admin-products-table-wrapper">
+          <div data-cy="tabela-pedidos" className="admin-products-table-wrapper">
             <table className="admin-products-table">
               <thead>
                 <tr>
@@ -226,12 +228,12 @@ function AdminPedidoLista() {
               </thead>
               <tbody>
                 {pedidosPaginados.map((pedido) => (
-                  <tr key={pedido.id}>
+                  <tr data-cy="pedido-row" key={pedido.id}>
                     <td>{pedido.id}</td>
                     <td>{pedido.cliente}</td>
                     <td>
                       {pedidoEditando === pedido.id ? (
-                        <select value={novoStatus} onChange={(e) => setNovoStatus(e.target.value)}>
+                        <select data-cy="novo-status-pedido" value={novoStatus} onChange={(e) => setNovoStatus(e.target.value)}>
                           <option value="aguardando_calculo_frete">
                             Aguardando frete
                           </option>
@@ -262,17 +264,19 @@ function AdminPedidoLista() {
                     <td>
                       {pedidoEditando === pedido.id ? (
                         <>
-                          <button className="admin-btn-novo-pedido" onClick={() => salvarStatus(pedido.id)}>
+                          <button data-cy="salvar-status-pedido" className="admin-btn-novo-pedido" onClick={() => salvarStatus(pedido.id)}>
                             Salvar
                           </button>
 
                           <button
+                            data-cy="cancelar-status-pedido"
                             className="admin-btn-novo-pedido" onClick={() => setPedidoEditando(null)}>
                             Cancelar
                           </button>
                         </>
                       ) : (
                         <button
+                          data-cy="editar-pedido"
                           className="admin-btn-novo-pedido"
                           onClick={() => {
                             setPedidoEditando(pedido.id);

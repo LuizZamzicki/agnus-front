@@ -303,7 +303,7 @@ function Carrinho() {
         <div className="cart-page">
 
             {toast && (
-                <div className={`toast ${toast.type}`}>
+                <div data-cy="carrinho-toast" className={`toast ${toast.type}`}>
                     {toast.message}
                 </div>
             )}
@@ -314,8 +314,19 @@ function Carrinho() {
                         <h3>Remover produto?</h3>
 
                         <div className="modal-actions">
-                            <button onClick={() => setConfirmDelete(null)}>Cancelar</button>
-                            <button onClick={confirmarRemocao}>Sim, remover</button>
+                            <button
+                                data-cy="cancelar-remover"
+                                onClick={() => setConfirmDelete(null)}
+                            >
+                                Cancelar
+                            </button>
+
+                            <button
+                                data-cy="confirmar-remover"
+                                onClick={confirmarRemocao}
+                            >
+                                Sim, remover
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -327,8 +338,19 @@ function Carrinho() {
                         <h3>Finalizar pedido?</h3>
 
                         <div className="modal-actions">
-                            <button onClick={() => setConfirmFinish(false)}>Cancelar</button>
-                            <button onClick={finalizarCompra}>Sim, finalizar</button>
+                            <button
+                                data-cy="cancelar-finalizar"
+                                onClick={() => setConfirmFinish(false)}
+                            >
+                                Cancelar
+                            </button>
+
+                            <button
+                                data-cy="confirmar-finalizar"
+                                onClick={finalizarCompra}
+                            >
+                                Sim, finalizar
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -343,36 +365,66 @@ function Carrinho() {
             <div className="cart-container">
                 <div className="cart-items">
                     <label style={{ marginBottom: 10, display: "block" }}>
-                        <input type="checkbox"
+                        <input data-cy="selecionar-todos" type="checkbox"
                             checked={cart.length > 0 && selectedItems.length === cart.length}
                             onChange={selecionarTodos} />
                         Selecionar todos
                     </label>
+
                     {cart.map(item =>
+
                     (<div className="cart-item"
                         key={item.id_carrinho_item}>
-                        <input type="checkbox"
+
+                        <input
+                            data-cy={`selecionar-item-${item.id_carrinho_item}`}
+                            type="checkbox"
                             checked={selectedItems.includes(item.id_carrinho_item)}
                             onChange={() => toggleSelect(item.id_carrinho_item)}
-                            style={{ marginRight: 10 }} />
+                            style={{ marginRight: 10 }}
+                        />
+
                         {item.img && (<img src={item.img}
+
                             alt={item.nome_produto} />)}
+
                         <div className="cart-info">
+
                             <h3>{item.nome_produto}</h3>
-                            <span> Cor: {item.nome_cor} • Tam: {item.nome_tamanho}
+
+                            <span>
+                                Cor: {item.nome_cor} • Tam: {item.nome_tamanho}
                             </span>
+
                             <div className="qtd">
-                                <button onClick={() => alterarQtd(item, "remove")}>-</button>
-                                <span>{item.quantidade}</span>
-                                <button onClick={() => alterarQtd(item, "add")}>+</button>
+                                <button
+                                    data-cy={`diminuir-${item.id_carrinho_item}`}
+                                    onClick={() => alterarQtd(item, "remove")}> -
+
+                                </button>
+
+                                <span data-cy={`quantidade-${item.id_carrinho_item}`}>
+                                    {item.quantidade}
+                                </span>
+
+                                <button
+                                    data-cy={`aumentar-${item.id_carrinho_item}`}
+                                    onClick={() => alterarQtd(item, "add")}>+
+                                </button>
                             </div>
                         </div>
                         <div className="cart-price">
-                            <span> R$ {(item.preco_unitario * item.quantidade).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                            <span>
+                                R$ {(item.preco_unitario * item.quantidade).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                             </span>
-                            <Trash2 onClick={() => removerItem(item.id_carrinho_item)} />
+                            <Trash2
+                                data-cy={`remover-${item.id_carrinho_item}`}
+                                onClick={() => removerItem(item.id_carrinho_item)}
+                            />
                         </div>
-                    </div>))} </div>
+                    </div>))}
+                </div>
+
                 <div className="cart-summary">
                     <h2>RESUMO</h2>
                     <div>
@@ -384,7 +436,13 @@ function Carrinho() {
                         <strong>TOTAL: </strong>
                         <strong>R$ {subtotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</strong>
                     </div>
-                    <button className="finish-btn" onClick={() => setConfirmFinish(true)}> FINALIZAR COMPRA </button>
+                    <button
+                        data-cy="finalizar-compra"
+                        className="finish-btn"
+                        onClick={() => setConfirmFinish(true)}
+                    >
+                        FINALIZAR COMPRA
+                    </button>
                 </div>
             </div>
         </div>);

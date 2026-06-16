@@ -132,24 +132,22 @@ function ClientePerfil() {
 
     return (
         <>
-            <h2>Dados Pessoais</h2>
+            <h2 data-cy="titulo-perfil">Dados Pessoais</h2>
 
             <label>Nome</label>
-            <input
-                value={user.nome || ""}
-                onChange={(e) => setUser({ ...user, nome: e.target.value })}
-            />
+            <input data-cy="nome-perfil" value={user.nome || ""} onChange={(e) => setUser({ ...user, nome: e.target.value })} />
 
             <label>Email</label>
-            <input value={user.email || ""} disabled />
+            <input data-cy="email-perfil" value={user.email || ""} disabled />
 
             <label>CPF</label>
-            <input value={user.cpf || ""} disabled />
+            <input data-cy="cpf-perfil" value={user.cpf || ""} disabled />
 
-            {success && <div className="success-message">{success}</div>}
-            {error && <div className="error-message">{error}</div>}
+            {success && <div data-cy="success-message" className="success-message">{success}</div >}
+            {error && <div data-cy="error-message" className="error-message">{error}</div>}
 
             <button
+                data-cy="salvar-perfil"
                 onClick={handleSave}
                 className={saving ? "loading" : ""}
                 disabled={
