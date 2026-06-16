@@ -1,3 +1,5 @@
+import { apiUrl } from "./api";
+
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
 
@@ -106,7 +108,7 @@ export async function fetchJsonPaginado(
 ) {
   let paginaAtual = normalizarInteiroPositivo(page, DEFAULT_PAGE);
   let limiteAtual = normalizarInteiroPositivo(limit, DEFAULT_LIMIT);
-  let finalUrl = construirUrlPaginada(url, { page: paginaAtual, limit: limiteAtual, params });
+  let finalUrl = construirUrlPaginada(apiUrl(url), { page: paginaAtual, limit: limiteAtual, params });
 
   let response = await fetcher(finalUrl, {
     method: options.method || "GET",
@@ -122,7 +124,7 @@ export async function fetchJsonPaginado(
   if (response.status === 400 && (paginaAtual !== paginaFallback || limiteAtual !== limiteFallback)) {
     paginaAtual = paginaFallback;
     limiteAtual = limiteFallback;
-    finalUrl = construirUrlPaginada(url, { page: paginaAtual, limit: limiteAtual, params });
+    finalUrl = construirUrlPaginada(apiUrl(url), { page: paginaAtual, limit: limiteAtual, params });
 
     response = await fetcher(finalUrl, {
       method: options.method || "GET",

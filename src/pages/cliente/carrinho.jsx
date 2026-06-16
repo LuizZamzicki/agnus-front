@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Trash2, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
 import "../../css/cliente/carrinho.css";
+import { apiUrl, assetUrl } from "../../utils/api";
 
 let toastTimeout;
 
@@ -13,8 +14,6 @@ function Carrinho() {
 
     const [confirmFinish, setConfirmFinish] = useState(false);
     const [selectedItems, setSelectedItems] = useState([]);
-
-    const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
     const auth = JSON.parse(localStorage.getItem("auth") || "{}");
     const token = localStorage.getItem("auth_token");
@@ -55,7 +54,7 @@ function Carrinho() {
                 return;
             }
 
-            const carrinhoRes = await fetch(`${BASE_URL}carts?id_usuario=${id_usuario}`);
+            const carrinhoRes = await fetch(apiUrl(`carts?id_usuario=${id_usuario}`));
             const carrinhos = await safeJson(carrinhoRes);
 
             if (!carrinhos?.length) {
@@ -65,7 +64,7 @@ function Carrinho() {
 
             const carrinho = carrinhos[0];
 
-            const itensRes = await fetch(`${BASE_URL}cart-items/${carrinho.id_carrinho}`);
+            const itensRes = await fetch(apiUrl(`cart-items/${carrinho.id_carrinho}`));
             const itens = await safeJson(itensRes);
 
             if (!itens?.length) {
@@ -79,7 +78,7 @@ function Carrinho() {
                 nome_cor: item.cor?.nome || "Cor",
                 nome_tamanho: item.grade?.nome || "Tamanho",
                 img: item.foto_produto
-                    ? `${BASE_URL}${item.foto_produto}`
+                    ? assetUrl(item.foto_produto)
                     : null,
                 preco_unitario: Number(item.preco_unitario || 0)
             }));
@@ -129,7 +128,7 @@ function Carrinho() {
 
             if (novaQtd < 1) return;
 
-            const res = await fetch(`${BASE_URL}cart-items/${item.id_carrinho_item}`, {
+            const res = await fetch(apiUrl(`cart-items/${item.id_carrinho_item}`), {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ quantidade: novaQtd })
@@ -159,7 +158,7 @@ function Carrinho() {
 
     async function confirmarRemocao() {
         try {
-            const res = await fetch(`${BASE_URL}cart-items/${confirmDelete}`, {
+            const res = await fetch(apiUrl(`cart-items/${confirmDelete}`), {
                 method: "DELETE"
             });
 
@@ -191,7 +190,7 @@ function Carrinho() {
         }
 
         try {
-            const enderecoRes = await fetch(`${BASE_URL}user-addresses/${id_usuario}`);
+            const enderecoRes = await fetch(apiUrl(`user-addresses/${id_usuario}`));
             const enderecos = await safeJson(enderecoRes);
 
             if (!Array.isArray(enderecos) || enderecos.length === 0) {
@@ -201,7 +200,7 @@ function Carrinho() {
 
             const endereco = enderecos[0];
 
-            const pedidoRes = await fetch(`${BASE_URL}orders`, {
+            const pedidoRes = await fetch(apiUrl("orders"), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -222,7 +221,7 @@ function Carrinho() {
 
             await Promise.all(
                 selecionados.map(item =>
-                    fetch(`${BASE_URL}order-items`, {
+                    fetch(apiUrl("order-items"), {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -237,7 +236,7 @@ function Carrinho() {
 
             await Promise.all(
                 selecionados.map(item =>
-                    fetch(`${BASE_URL}cart-items/${item.id_carrinho_item}`, {
+                    fetch(apiUrl(`cart-items/${item.id_carrinho_item}`), {
                         method: "DELETE"
                     })
                 )

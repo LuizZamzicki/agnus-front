@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const API_BASE = process.env.REACT_APP_API_BASE_URL;
+import { apiUrl } from "../../utils/api";
 
 function ClientePerfil() {
     const [user, setUser] = useState({});
@@ -60,7 +59,7 @@ function ClientePerfil() {
             }
 
             try {
-                const response = await fetch(`${API_BASE}users/${userId}`, {
+                const response = await fetch(apiUrl(`users/${userId}`), {
                     headers: { Authorization: `Bearer ${token}` },
                 });
 
@@ -101,7 +100,7 @@ function ClientePerfil() {
         setSaving(true);
 
         try {
-            const response = await fetch(`${API_BASE}users/${userId}`, {
+            const response = await fetch(apiUrl(`users/${userId}`), {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

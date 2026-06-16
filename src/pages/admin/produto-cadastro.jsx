@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Grid3x3, Palette, Plus, Upload, X } from "lucide-react";
 import { useNotification } from "../../components/notification";
+import { assetUrl } from "../../utils/api";
 import { fetchJsonPaginado } from "../../utils/pagination";
 import { apiFetch, getAuthHeaders } from "./admin-api";
-
-const API_BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
 
 function normalizarCategoria(item, index = 0) {
   return {
@@ -112,8 +111,7 @@ function normalizarUrlImagem(url) {
     return valor;
   }
 
-  const caminho = valor.startsWith("/") ? valor : `/${valor}`;
-  return API_BASE ? `${API_BASE}${caminho}` : caminho;
+  return assetUrl(valor);
 }
 
 function AdminProdutoCadastro() {

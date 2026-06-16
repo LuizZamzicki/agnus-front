@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const API_BASE = process.env.REACT_APP_API_BASE_URL;
+import { apiUrl, assetUrl } from "../../utils/api";
 
 function ClientePedidos() {
     const [pedidos, setPedidos] = useState([]);
@@ -29,7 +28,7 @@ function ClientePedidos() {
             }
 
             try {
-                const resPedidos = await fetch(`${API_BASE}orders`, {
+                const resPedidos = await fetch(apiUrl("orders"), {
                     headers: { Authorization: `Bearer ${token}` },
                 });
 
@@ -53,7 +52,7 @@ function ClientePedidos() {
                     meusPedidos.map(async (pedido) => {
                         try {
                             const resItens = await fetch(
-                                `${API_BASE}order-items/${pedido.id_pedido}`,
+                                apiUrl(`order-items/${pedido.id_pedido}`),
                                 {
                                     headers: { Authorization: `Bearer ${token}` },
                                 }
@@ -69,9 +68,9 @@ function ClientePedidos() {
                             const itens = (Array.isArray(itensRaw) ? itensRaw : itensRaw?.data || []).map(item => ({
                                 ...item,
                                 img: item.produto?.foto_principal
-                                    ? `${API_BASE}${item.produto.foto_principal}`
+                                    ? assetUrl(item.produto.foto_principal)
                                     : item.produto?.imagem
-                                        ? `${API_BASE}${item.produto.imagem}`
+                                        ? assetUrl(item.produto.imagem)
                                         : null
                             }));
 

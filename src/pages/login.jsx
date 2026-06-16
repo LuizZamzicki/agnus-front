@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import "../css/login.css";
+import { apiUrl } from "../utils/api";
 import { evaluatePasswordStrength } from "../utils/passwordStrength";
-
-const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 function Login() {
   const navigate = useNavigate();
@@ -187,7 +186,7 @@ function Login() {
           return;
         }
 
-        const response = await fetch(`${API_BASE}users`, {
+        const response = await fetch(apiUrl("users"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -223,7 +222,7 @@ function Login() {
           setSuccess("");
         }, 1000);
       } else {
-        const response = await fetch(`${API_BASE}auth/login`, {
+        const response = await fetch(apiUrl("auth/login"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -265,7 +264,7 @@ function Login() {
     const redirect = searchParams.get("redirect") || "/";
 
     window.location.href =
-      `${API_BASE}auth/google?redirect=${encodeURIComponent(redirect)}`;
+      apiUrl(`auth/google?redirect=${encodeURIComponent(redirect)}`);
   }
 
   return (

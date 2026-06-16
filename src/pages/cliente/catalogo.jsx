@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import "../../css/cliente/catalogo.css";
 import { Filter, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { apiUrl, assetUrl } from "../../utils/api";
 
 function Catalogo() {
 
@@ -16,12 +17,10 @@ function Catalogo() {
     const [avaliacoes, setAvaliacoes] = useState({});
 
     const navigate = useNavigate();
-    const BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
     async function carregarProdutos(pag = 1) {
         try {
 
-            let url = `${BASE_URL}products/catalog?page=${pag}&limit=12`;
+            let url = apiUrl(`products/catalog?page=${pag}&limit=12`);
 
             if (categoria !== "Todos") {
                 url += `&id_categoria=${categoria}`;
@@ -38,7 +37,7 @@ function Catalogo() {
 
             const produtosTratados = lista.map(prod => ({
                 ...prod,
-                imagens: (prod.imagens || []).map(img => `${BASE_URL}${img}`)
+                imagens: (prod.imagens || []).map(assetUrl)
             }));
 
             setProdutos(produtosTratados);
@@ -57,7 +56,7 @@ function Catalogo() {
             await Promise.all(
                 produtosLista.map(async (prod) => {
                     try {
-                        const res = await fetch(`${BASE_URL}product-reviews/${prod.id_produto}`);
+                        const res = await fetch(apiUrl(`product-reviews/${prod.id_produto}`));
                         const data = await res.json();
 
                         const lista = Array.isArray(data) ? data : data?.data || [];
@@ -81,7 +80,7 @@ function Catalogo() {
 
     async function carregarCategorias() {
         try {
-            const res = await fetch(`${BASE_URL}categories`);
+            const res = await fetch(apiUrl("categories"));
             const data = await res.json();
             setCategorias(data.data || []);
         } catch (err) {

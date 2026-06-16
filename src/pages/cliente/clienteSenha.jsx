@@ -1,9 +1,8 @@
 import "../../css/cliente.css";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiUrl } from "../../utils/api";
 import { evaluatePasswordStrength } from "../../utils/passwordStrength";
-
-const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 function ClienteSenha() {
 
@@ -86,7 +85,7 @@ function ClienteSenha() {
         }
 
         try {
-            const res = await fetch(`${API_BASE}users/${userId}/password`, {
+            const res = await fetch(apiUrl(`users/${userId}/password`), {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",

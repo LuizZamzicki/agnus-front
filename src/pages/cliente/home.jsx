@@ -4,6 +4,7 @@ import { Brush, Truck, Shield, Star } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiUrl, assetUrl } from "../../utils/api";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -21,11 +22,9 @@ function Home() {
     const [avaliacoes, setAvaliacoes] = useState({});
 
     const navigate = useNavigate();
-    const BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
     async function carregarProdutos(pag = 1, filtroAtual = filtro) {
         try {
-            let url = `${BASE_URL}products/catalog?page=${pag}&limit=12`;
+            let url = apiUrl(`products/catalog?page=${pag}&limit=12`);
 
             if (filtroAtual !== "todos") {
                 url += `&id_categoria=${filtroAtual}`;
@@ -38,7 +37,7 @@ function Home() {
 
             const produtosTratados = lista.map(prod => ({
                 ...prod,
-                imagens: (prod.imagens || []).map(img => `${BASE_URL}${img}`),
+                imagens: (prod.imagens || []).map(assetUrl),
                 categoria_id: prod.id_categoria
             }));
 
@@ -59,7 +58,7 @@ function Home() {
             await Promise.all(
                 produtosLista.map(async (prod) => {
                     try {
-                        const res = await fetch(`${BASE_URL}product-reviews/${prod.id_produto}`);
+                        const res = await fetch(apiUrl(`product-reviews/${prod.id_produto}`));
                         const data = await res.json();
 
                         const lista = Array.isArray(data) ? data : data?.data || [];
@@ -85,14 +84,14 @@ function Home() {
 
     async function carregarBestSellers() {
         try {
-            const res = await fetch(`${BASE_URL}products/best-sellers?page=1&limit=6`);
+            const res = await fetch(apiUrl("products/best-sellers?page=1&limit=6"));
             const data = await res.json();
 
             const lista = Array.isArray(data.data) ? data.data : [];
 
             const produtosTratados = lista.map(prod => ({
                 ...prod,
-                imagens: (prod.imagens || []).map(img => `${BASE_URL}${img}`)
+                imagens: (prod.imagens || []).map(assetUrl)
             }));
 
             setBestSellers(produtosTratados);
@@ -104,7 +103,7 @@ function Home() {
 
     async function carregarCategorias() {
         try {
-            const res = await fetch(`${BASE_URL}categories`);
+            const res = await fetch(apiUrl("categories"));
             const data = await res.json();
             setCategorias(data.data || []);
         } catch (err) {

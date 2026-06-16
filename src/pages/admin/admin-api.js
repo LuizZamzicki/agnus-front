@@ -1,3 +1,5 @@
+import { apiUrl } from "../../utils/api";
+
 function mascararHeaders(headers = {}) {
   const copia = { ...headers };
   if (typeof copia.Authorization === "string") {
@@ -58,6 +60,7 @@ export function getAuthHeaders({ json = true } = {}) {
 }
 
 export async function apiFetch(url, options = {}) {
+  const finalUrl = apiUrl(url);
   const metodo = options.method || "GET";
   const headers = mascararHeaders(options.headers || {});
   const payload = serializarBodyParaLog(options.body);
@@ -69,7 +72,7 @@ export async function apiFetch(url, options = {}) {
   console.log("Payload:", payload);
   console.groupEnd();
 
-  const response = await fetch(url, options);
+  const response = await fetch(finalUrl, options);
 
   if (!response.ok) {
     let respostaErro = null;
@@ -83,15 +86,21 @@ export async function apiFetch(url, options = {}) {
       }
     }
 
-    console.group(`[API ERRO] ${metodo} ${url}`);
+    console.group(`[API ERRO] ${metodo} ${finalUrl}`);
     console.log("Status:", response.status, response.statusText);
     console.log("Resposta:", respostaErro);
     console.groupEnd();
 
-    if ((response.status === 401 || response.status === 403) && window.location.pathname.startsWith("/admin")) {
+    if (
+      (response.status === 401 || response.status === 403) &&
+      window.location.pathname.startsWith("/admin")
+    ) {
       localStorage.removeItem("auth");
       localStorage.removeItem("auth_token");
-      sessionStorage.setItem("auth_redirect_message", "Sessao expirada. Faca login novamente.");
+      sessionStorage.setItem(
+        "auth_redirect_message",
+        "Sessao expirada. Faca login novamente.",
+      );
       window.location.assign("/login");
     }
   }
@@ -143,4 +152,3 @@ export function normalizarProdutoResumo(item) {
     custo: Number.isNaN(precoCusto) ? 0 : precoCusto,
   };
 }
-

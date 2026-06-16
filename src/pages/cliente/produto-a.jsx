@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ShoppingBag, Star } from "lucide-react";
 import "../../css/cliente/produto.css";
+import { apiUrl } from "../../utils/api";
 import { fetchJsonPaginado } from "../../utils/pagination";
 import { formatarMoeda, normalizarProduto, obterInicial } from "../../utils/produtos";
 
@@ -13,7 +14,7 @@ function normalizarCategoria(item, index = 0) {
 }
 
 async function buscarProdutoPorId(id, signal) {
-  const respostaDireta = await fetch(`/products/${id}`, { signal });
+  const respostaDireta = await fetch(apiUrl(`/products/${id}`), { signal });
   const dataDireta = await respostaDireta.json().catch(() => null);
 
   if (respostaDireta.ok && dataDireta) {

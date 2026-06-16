@@ -3,14 +3,13 @@ import { Link } from "react-router-dom";
 import { Star } from "lucide-react";
 import "../css/produtos.css";
 
+import { apiUrl, assetUrl } from "../utils/api";
 import { fetchJsonPaginado } from "../utils/pagination";
 import {
   formatarMoeda,
   normalizarProduto,
   obterInicial,
 } from "../utils/produtos";
-
-const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 function Produtos() {
   const [produtos, setProdutos] = useState([]);
@@ -51,10 +50,9 @@ function Produtos() {
         await Promise.all(
           produtosOk.map(async (p) => {
             try {
-              const res = await fetch(
-                `${API_BASE}/product-reviews/${p.id}`,
-                { signal: controller.signal }
-              );
+              const res = await fetch(apiUrl(`/product-reviews/${p.id}`), {
+                signal: controller.signal,
+              });
 
               if (!res.ok) throw new Error();
 
@@ -161,9 +159,7 @@ function Produtos() {
                 {p.fotos?.[0] ? (
                   <img
                     src={
-                      p.fotos[0].startsWith("http")
-                        ? p.fotos[0]
-                        : `${API_BASE}/uploads/${p.fotos[0]}`
+                      assetUrl(p.fotos[0])
                     }
                     alt={p.nome}
                   />
