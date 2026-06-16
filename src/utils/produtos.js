@@ -1,4 +1,4 @@
-const API_BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
+import { assetUrl } from "./api";
 
 function parseJsonSeguro(valor, fallback = []) {
   if (Array.isArray(valor)) return valor;
@@ -26,8 +26,7 @@ function normalizarUrlImagem(url) {
     return valor;
   }
 
-  const caminho = valor.startsWith("/") ? valor : `/${valor}`;
-  return API_BASE ? `${API_BASE}${caminho}` : caminho;
+  return assetUrl(valor);
 }
 
 function extrairUrlsDeFotos(entrada) {
@@ -38,18 +37,18 @@ function extrairUrlsDeFotos(entrada) {
       if (!foto || typeof foto !== "object") return "";
       return normalizarUrlImagem(
         foto.url ||
-          foto.src ||
-          foto.path ||
-          foto.caminho ||
-          foto.foto ||
-          foto.imagem ||
-          foto.foto_url ||
-          foto.caminho_url ||
-          foto.image_url ||
-          foto.imagem_url ||
-          foto.arquivo_url ||
-          foto.caminho_arquivo ||
-          ""
+        foto.src ||
+        foto.path ||
+        foto.caminho ||
+        foto.foto ||
+        foto.imagem ||
+        foto.foto_url ||
+        foto.caminho_url ||
+        foto.image_url ||
+        foto.imagem_url ||
+        foto.arquivo_url ||
+        foto.caminho_arquivo ||
+        ""
       );
     })
     .filter(Boolean);

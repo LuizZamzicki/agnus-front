@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Grid3x3, Palette, Plus, Upload, X } from "lucide-react";
 import { useNotification } from "../../components/notification";
+import { assetUrl } from "../../utils/api";
 import { fetchJsonPaginado } from "../../utils/pagination";
 import { apiFetch, getAuthHeaders } from "./admin-api";
-
-const API_BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
 
 function normalizarCategoria(item, index = 0) {
   return {
@@ -112,8 +111,7 @@ function normalizarUrlImagem(url) {
     return valor;
   }
 
-  const caminho = valor.startsWith("/") ? valor : `/${valor}`;
-  return API_BASE ? `${API_BASE}${caminho}` : caminho;
+  return assetUrl(valor);
 }
 
 function AdminProdutoCadastro() {
@@ -243,18 +241,18 @@ function AdminProdutoCadastro() {
         if (!foto || typeof foto !== "object") return "";
         return normalizarUrlImagem(
           foto.url ||
-            foto.src ||
-            foto.path ||
-            foto.caminho ||
-            foto.foto ||
-            foto.imagem ||
-            foto.foto_url ||
-            foto.caminho_url ||
-            foto.image_url ||
-            foto.imagem_url ||
-            foto.arquivo_url ||
-            foto.caminho_arquivo ||
-            ""
+          foto.src ||
+          foto.path ||
+          foto.caminho ||
+          foto.foto ||
+          foto.imagem ||
+          foto.foto_url ||
+          foto.caminho_url ||
+          foto.image_url ||
+          foto.imagem_url ||
+          foto.arquivo_url ||
+          foto.caminho_arquivo ||
+          ""
         );
       })
       .filter(Boolean);
@@ -412,10 +410,10 @@ function AdminProdutoCadastro() {
             return idCorFoto === undefined || idCorFoto === null;
           })
           .map((foto) =>
-              normalizarUrlImagem(
-                foto?.caminho ?? foto?.path ?? foto?.url ?? foto?.src ?? foto?.foto ?? foto?.imagem ?? foto?.foto_url ?? foto?.caminho_url ?? foto?.image_url ?? foto?.imagem_url ?? foto?.arquivo_url ?? foto?.caminho_arquivo
-              )
+            normalizarUrlImagem(
+              foto?.caminho ?? foto?.path ?? foto?.url ?? foto?.src ?? foto?.foto ?? foto?.imagem ?? foto?.foto_url ?? foto?.caminho_url ?? foto?.image_url ?? foto?.imagem_url ?? foto?.arquivo_url ?? foto?.caminho_arquivo
             )
+          )
           .filter(Boolean);
 
         if (fotosSemCor.length > 0 && coresComFotos.length > 0) {
@@ -487,7 +485,28 @@ function AdminProdutoCadastro() {
 
     const precoBase = produto.precoVenda !== "" ? parseFloat(produto.precoVenda) : undefined;
     if (precoBase === undefined || Number.isNaN(precoBase)) {
-      notify.warning("Por favor, preencha o preÃ§o de venda");
+      notify.warning("Por favor, preencha o preço de venda");
+      return;
+    }
+
+    const gradesValidas = grades.filter((grade) => (grade?.nome || "").trim() !== "");
+
+    if (gradesValidas.length === 0) {
+      notify.warning("Adicione pelo menos uma grade para o produto.");
+      return;
+    }
+
+    const coresValidas = cores.filter((cor) => {
+      const nomeValido = (cor?.nome || "").trim() !== "";
+      const fotos = Array.isArray(cor?.fotos) ? cor.fotos : [];
+
+      return nomeValido && fotos.length > 0;
+    });
+
+    if (coresValidas.length === 0) {
+      notify.warning(
+        "Adicione pelo menos uma cor com pelo menos uma foto para o produto."
+      );
       return;
     }
 
@@ -601,6 +620,7 @@ function AdminProdutoCadastro() {
             <div className="admin-form-group">
               <label className="admin-form-label">Nome da Categoria</label>
               <input
+                data-cy="nova-categoria-nome"
                 type="text"
                 className="admin-form-input"
                 placeholder="Ex.: Vestidos"
@@ -610,18 +630,20 @@ function AdminProdutoCadastro() {
             </div>
             <div className="admin-form-actions">
               <button
+                data-cy="cancelar-categoria"
                 className="admin-form-btn-secondary"
                 onClick={() => setIsCategoriaModalOpen(false)}
               >
                 Cancelar
               </button>
-              <button className="admin-form-btn-primary" onClick={salvarNovaCategoria}>
+              <button data-cy="salvar-categoria" className="admin-form-btn-primary" onClick={salvarNovaCategoria}>
                 Salvar
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </div >
+        </div >
+      )
+      }
 
       <div className="admin-form-section">
         <div className="admin-form-group full">
@@ -632,12 +654,14 @@ function AdminProdutoCadastro() {
             placeholder="Ex.: Vestido Aurora Prism"
             value={produto.nome}
             onChange={(e) => setProduto({ ...produto, nome: e.target.value })}
+            data-cy="produto-nome"
           />
         </div>
 
         <div className="admin-form-group full">
           <label className="admin-form-label">Descricao do Produto</label>
           <textarea
+            data-cy="produto-descricao"
             className="admin-form-textarea"
             placeholder="Descreva acabamentos, materiais nobres e narrativa da peca"
             value={produto.descricao}
@@ -652,6 +676,7 @@ function AdminProdutoCadastro() {
             <div className="admin-form-input-prefix">
               <span>R$</span>
               <input
+                data-cy="produto-custo"
                 type="number"
                 placeholder="0,00"
                 step="0.01"
@@ -666,6 +691,7 @@ function AdminProdutoCadastro() {
             <div className="admin-form-input-prefix">
               <span>R$</span>
               <input
+                data-cy="produto-preco-venda"
                 type="number"
                 placeholder="0,00"
                 step="0.01"
@@ -679,6 +705,7 @@ function AdminProdutoCadastro() {
             <label className="admin-form-label">Categoria</label>
             <div className="admin-input-group">
               <select
+                data-cy="produto-categoria"
                 className="admin-form-input"
                 value={produto.categoria}
                 onChange={(e) => setProduto({ ...produto, categoria: e.target.value })}
@@ -693,6 +720,7 @@ function AdminProdutoCadastro() {
                 ))}
               </select>
               <button
+                data-cy="abrir-modal-categoria"
                 type="button"
                 className="admin-btn-add-inline"
                 onClick={() => setIsCategoriaModalOpen(true)}
@@ -723,13 +751,14 @@ function AdminProdutoCadastro() {
         ) : (
           <div className="admin-form-items admin-grade-grid">
             {grades.map((grade) => (
-              <div key={grade.id} className="admin-grade-card">
+              <div data-cy="grade-item" key={grade.id} className="admin-grade-card">
                 <div className="admin-grade-card-head">
                   <div className="admin-grade-card-title-wrap">
                     <span className="admin-grade-card-title">{grade.nome}</span>
                     <span className="admin-grade-card-subtitle">Acrescimo opcional</span>
                   </div>
                   <button
+                    data-cy="remover-grade"
                     className="admin-grade-card-remove"
                     onClick={() => removerGrade(grade.id)}
                     aria-label={`Remover grade ${grade.nome}`}
@@ -758,11 +787,17 @@ function AdminProdutoCadastro() {
             <div className="admin-form-group">
               <label className="admin-form-label">Nome da Grade</label>
               <input
+                data-cy="nova-grade-nome"
                 type="text"
                 className="admin-form-input"
                 placeholder="PP"
                 value={novaGrade.nome}
-                onChange={(e) => setNovaGrade({ ...novaGrade, nome: e.target.value })}
+                onChange={(e) =>
+                  setNovaGrade({
+                    ...novaGrade,
+                    nome: e.target.value
+                  })
+                }
               />
             </div>
 
@@ -780,13 +815,13 @@ function AdminProdutoCadastro() {
               </div>
             </div>
 
-            <button className="admin-form-btn-add" onClick={adicionarGrade}>
+            <button data-cy="adicionar-grade" className="admin-form-btn-add" onClick={adicionarGrade}>
               <Plus size={18} />
               Adicionar grade
             </button>
           </div>
-        </div>
-      </div>
+        </div >
+      </div >
 
       <div className="admin-form-section">
         <div className="admin-form-header">
@@ -824,6 +859,7 @@ function AdminProdutoCadastro() {
                   <div className="admin-form-color-head">
                     <h4 className="admin-form-color-name">{cor.nome}</h4>
                     <button
+                      data-cy="remover-cor"
                       className="admin-form-color-remove-btn"
                       onClick={() => removerCor(cor.id)}
                       aria-label={`Remover cor ${cor.nome}`}
@@ -844,6 +880,7 @@ function AdminProdutoCadastro() {
                     <div className="admin-form-color-acrescimo">
                       <span>R$</span>
                       <input
+                        data-cy={`acrescimo-cor-${cor.id}`}
                         type="number"
                         step="0.01"
                         placeholder="+0,00"
@@ -863,6 +900,7 @@ function AdminProdutoCadastro() {
                             className="admin-foto-preview-img"
                           />
                           <button
+                            data-cy={`remover-foto-cor-${cor.id}-${index}`}
                             onClick={() => removerCorFoto(cor.id, index)}
                             className="admin-foto-preview-remove"
                           >
@@ -878,6 +916,7 @@ function AdminProdutoCadastro() {
                     Adicionar fotos
                   </label>
                   <input
+                    data-cy={`upload-foto-cor-${cor.id}`}
                     id={`cor-fotos-${cor.id}`}
                     type="file"
                     multiple
@@ -902,6 +941,7 @@ function AdminProdutoCadastro() {
               <input
                 type="text"
                 className="admin-form-input"
+                data-cy="nova-cor-nome"
                 placeholder="Ex.: Azul Lunar"
                 value={novaCor.nome}
                 onChange={(e) => setNovaCor({ ...novaCor, nome: e.target.value })}
@@ -913,6 +953,7 @@ function AdminProdutoCadastro() {
               <input
                 type="color"
                 className="admin-form-color-input"
+                data-cy="nova-cor-tonalidade"
                 value={novaCor.tonalidade}
                 onChange={(e) => setNovaCor({ ...novaCor, tonalidade: e.target.value })}
               />
@@ -926,13 +967,14 @@ function AdminProdutoCadastro() {
                   type="number"
                   placeholder="0,00"
                   step="0.01"
+                  data-cy="nova-cor-acrescimo"
                   value={novaCor.acrescimo}
                   onChange={(e) => setNovaCor({ ...novaCor, acrescimo: e.target.value })}
                 />
               </div>
             </div>
 
-            <button className="admin-form-btn-add" onClick={adicionarCor}>
+            <button data-cy="adicionar-cor" className="admin-form-btn-add" onClick={adicionarCor}>
               <Plus size={18} />
               Adicionar cor
             </button>
@@ -941,47 +983,15 @@ function AdminProdutoCadastro() {
       </div>
 
       <div className="admin-form-actions admin-form-actions--floating">
-        <button className="admin-form-btn-secondary" onClick={() => navigate("/admin/produtos")}>
+        <button data-cy="cancelar-produto" className="admin-form-btn-secondary" onClick={() => navigate("/admin/produtos")}>
           Cancelar
         </button>
-        <button className="admin-form-btn-primary" onClick={salvarProdutoComFotos}>
+        <button data-cy="salvar-produto" className="admin-form-btn-primary" onClick={salvarProdutoComFotos}>
           {carregandoEdicao ? "Carregando..." : produtoEdicaoId ? "Atualizar Produto" : "Salvar Produto"}
         </button>
       </div>
-    </div>
+    </div >
   );
 }
 
 export default AdminProdutoCadastro;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

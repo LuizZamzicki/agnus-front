@@ -155,6 +155,7 @@ function AdminCategoriaLista() {
             <div className="admin-form-group">
               <label className="admin-form-label">Nome da Categoria</label>
               <input
+                data-cy="input-nome-categoria"
                 type="text"
                 className="admin-form-input"
                 placeholder="Ex.: Vestidos"
@@ -173,6 +174,7 @@ function AdminCategoriaLista() {
                 Cancelar
               </button>
               <button
+                data-cy="btn-salvar-categoria"
                 className="admin-form-btn-primary"
                 onClick={cadastrarCategoria}
                 disabled={salvandoCategoria}
@@ -187,6 +189,7 @@ function AdminCategoriaLista() {
       <div className="admin-categorias-header">
         <div className="admin-list-filters">
           <input
+            data-cy="buscar-categoria"
             type="search"
             className="admin-form-input admin-list-filter-input"
             placeholder="Buscar por ID ou nome da categoria"
@@ -204,7 +207,7 @@ function AdminCategoriaLista() {
           </select>
         </div>
 
-        <button className="admin-btn-novo" onClick={() => setIsCategoriaModalOpen(true)}>
+        <button data-cy="btn-nova-categoria" className="admin-btn-novo" onClick={() => setIsCategoriaModalOpen(true)}>
           <Plus size={18} />
           Cadastrar categoria
         </button>
@@ -229,7 +232,7 @@ function AdminCategoriaLista() {
       ) : (
         <>
           <div className="admin-products-table-wrapper">
-            <table className="admin-products-table">
+            <table data-cy="tabela-categorias" className="admin-products-table">
               <thead>
                 <tr>
                   <th>ID</th>
@@ -238,7 +241,7 @@ function AdminCategoriaLista() {
               </thead>
               <tbody>
                 {categoriasFiltradas.map((categoria) => (
-                  <tr key={categoria.id}>
+                  <tr data-cy="categoria-item" key={categoria.id}>
                     <td>{categoria.id}</td>
                     <td>{categoria.nome}</td>
                   </tr>

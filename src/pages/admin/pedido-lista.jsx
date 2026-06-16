@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Package } from "lucide-react";
+import { Package, Pencil } from "lucide-react";
 import { apiFetch, formatarMoeda, formatarStatus, getAuthHeaders } from "./admin-api";
 
 function normalizarListaResposta(payload) {
@@ -48,6 +48,9 @@ function AdminPedidoLista() {
   const [pedidosError, setPedidosError] = useState("");
   const [pedidos, setPedidos] = useState([]);
 
+  const [pedidoEditando, setPedidoEditando] = useState(null);
+  const [novoStatus, setNovoStatus] = useState("");
+
   useEffect(() => {
     let ativo = true;
 
@@ -90,6 +93,38 @@ function AdminPedidoLista() {
     };
   }, [pedidosStatusFiltro]);
 
+  async function salvarStatus(idPedido) {
+    try {
+      const response = await apiFetch(`/orders/${idPedido}`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          status: novoStatus,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        alert(data?.message || "Erro ao atualizar pedido.");
+        return;
+      }
+
+      setPedidos((prev) =>
+        prev.map((pedido) =>
+          pedido.id === idPedido
+            ? { ...pedido, status: novoStatus }
+            : pedido
+        )
+      );
+
+      setPedidoEditando(null);
+      setNovoStatus("");
+    } catch {
+      alert("Erro ao conectar no servidor.");
+    }
+  }
+
   const pedidosFiltrados = useMemo(() => {
     const busca = pedidosBuscaFiltro.trim().toLowerCase();
     if (!busca) return pedidos;
@@ -124,6 +159,7 @@ function AdminPedidoLista() {
       <div className="admin-products-header">
         <div className="admin-list-filters">
           <input
+            data-cy="buscar-pedido"
             type="search"
             className="admin-form-input admin-list-filter-input"
             placeholder="Buscar por ID, cliente ou status"
@@ -131,6 +167,7 @@ function AdminPedidoLista() {
             onChange={(e) => setPedidosBuscaFiltro(e.target.value)}
           />
           <select
+            data-cy="filtro-status-pedido"
             className="admin-form-input admin-list-filter-select"
             value={pedidosStatusFiltro}
             onChange={(e) => setPedidosStatusFiltro(e.target.value)}
@@ -177,7 +214,7 @@ function AdminPedidoLista() {
         </div>
       ) : (
         <>
-          <div className="admin-products-table-wrapper">
+          <div data-cy="tabela-pedidos" className="admin-products-table-wrapper">
             <table className="admin-products-table">
               <thead>
                 <tr>
@@ -186,16 +223,72 @@ function AdminPedidoLista() {
                   <th>Status</th>
                   <th>Total</th>
                   <th>Data</th>
+                  <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {pedidosPaginados.map((pedido) => (
-                  <tr key={pedido.id}>
+                  <tr data-cy="pedido-row" key={pedido.id}>
                     <td>{pedido.id}</td>
                     <td>{pedido.cliente}</td>
-                    <td>{formatarStatus(pedido.status)}</td>
+                    <td>
+                      {pedidoEditando === pedido.id ? (
+                        <select data-cy="novo-status-pedido" value={novoStatus} onChange={(e) => setNovoStatus(e.target.value)}>
+                          <option value="aguardando_calculo_frete">
+                            Aguardando frete
+                          </option>
+                          <option value="aguardando_pagamento">
+                            Aguardando pagamento
+                          </option>
+                          <option value="pago">
+                            Pago
+                          </option>
+                          <option value="enviado">
+                            Enviado
+                          </option>
+                          <option value="entregue">
+                            Entregue
+                          </option>
+                          <option value="cancelado">
+                            Cancelado
+                          </option>
+                        </select>
+                      ) : (
+                        formatarStatus(pedido.status)
+                      )}
+                    </td>
+
                     <td>{formatarMoeda(pedido.total)}</td>
                     <td>{formatarDataPedido(pedido.dataCriacao)}</td>
+
+                    <td>
+                      {pedidoEditando === pedido.id ? (
+                        <>
+                          <button data-cy="salvar-status-pedido" className="admin-btn-novo-pedido" onClick={() => salvarStatus(pedido.id)}>
+                            Salvar
+                          </button>
+
+                          <button
+                            data-cy="cancelar-status-pedido"
+                            className="admin-btn-novo-pedido" onClick={() => setPedidoEditando(null)}>
+                            Cancelar
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          data-cy="editar-pedido"
+                          className="admin-btn-novo-pedido"
+                          onClick={() => {
+                            setPedidoEditando(pedido.id);
+                            setNovoStatus(
+                              pedido.status
+                            );
+                          }}
+                        >
+                          <Pencil size={16} />
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

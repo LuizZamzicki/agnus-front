@@ -133,6 +133,7 @@ function AdminUsuarioLista() {
       <div className="admin-products-header">
         <div className="admin-list-filters">
           <input
+            data-cy="usuario-busca"
             type="search"
             className="admin-form-input admin-list-filter-input"
             placeholder="Buscar por ID, nome, email ou tipo"
@@ -140,6 +141,7 @@ function AdminUsuarioLista() {
             onChange={(e) => setUsuariosBuscaFiltro(e.target.value)}
           />
           <select
+            data-cy="usuario-filtro-tipo"
             className="admin-form-input admin-list-filter-select"
             value={usuariosTipoFiltro}
             onChange={(e) => setUsuariosTipoFiltro(e.target.value)}
@@ -152,6 +154,7 @@ function AdminUsuarioLista() {
             ))}
           </select>
           <select
+            data-cy="usuario-limit"
             className="admin-form-input admin-list-filter-select"
             value={limit}
             onChange={(e) => setLimit(Number(e.target.value) || 10)}
@@ -186,7 +189,7 @@ function AdminUsuarioLista() {
       ) : (
         <>
           <div className="admin-products-table-wrapper">
-            <table className="admin-products-table">
+            <table data-cy="usuario-tabela" className="admin-products-table">
               <thead>
                 <tr>
                   <th>ID</th>
@@ -198,19 +201,36 @@ function AdminUsuarioLista() {
               </thead>
               <tbody>
                 {usuariosFiltrados.map((usuario) => (
-                  <tr key={usuario.id}>
-                    <td>{usuario.id}</td>
-                    <td className="admin-products-nome">{usuario.nome}</td>
-                    <td>{usuario.email}</td>
-                    <td>{formatarTipoUsuario(usuario.tipo)}</td>
-                    <td>{formatarDataUsuario(usuario.dataCriacao)}</td>
+                  <tr data-cy={`usuario-linha-${usuario.id}`} key={usuario.id}>
+                    <td data-cy="usuario-id">
+                      {usuario.id}
+                    </td>
+
+                    <td
+                      data-cy="usuario-nome"
+                      className="admin-products-nome"
+                    >
+                      {usuario.nome}
+                    </td>
+
+                    <td data-cy="usuario-email">
+                      {usuario.email}
+                    </td>
+
+                    <td data-cy="usuario-tipo">
+                      {formatarTipoUsuario(usuario.tipo)}
+                    </td>
+
+                    <td data-cy="usuario-cadastro">
+                      {formatarDataUsuario(usuario.dataCriacao)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          <div className="admin-list-pagination">
+          <div data-cy="usuario-paginacao" className="admin-list-pagination">
             <div className="admin-list-pagination__meta">
               <div className="admin-form-input admin-list-pagination__status">
                 Pagina {pagination.page} de {pagination.totalPages}
@@ -220,6 +240,7 @@ function AdminUsuarioLista() {
 
             <div className="admin-products-acoes">
               <button
+                data-cy="usuario-anterior"
                 className="admin-btn-novo"
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={!pagination.hasPreviousPage}
@@ -227,6 +248,7 @@ function AdminUsuarioLista() {
                 Anterior
               </button>
               <button
+                data-cy="usuario-proxima"
                 className="admin-btn-novo"
                 onClick={() => setCurrentPage((prev) => Math.min(pagination.totalPages, prev + 1))}
                 disabled={!pagination.hasNextPage}

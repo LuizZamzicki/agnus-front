@@ -208,6 +208,7 @@ function AdminProdutoLista() {
       <div className="admin-products-header">
         <div className="admin-list-filters">
           <input
+            data-cy="produto-busca"
             type="search"
             className="admin-form-input admin-list-filter-input"
             placeholder="Buscar por nome, ID ou categoria"
@@ -215,6 +216,7 @@ function AdminProdutoLista() {
             onChange={(event) => setFiltroBusca(event.target.value)}
           />
           <select
+            data-cy="produto-filtro-categoria"
             className="admin-form-input admin-list-filter-select"
             value={filtroCategoria}
             onChange={(event) => setFiltroCategoria(event.target.value)}
@@ -227,6 +229,7 @@ function AdminProdutoLista() {
             ))}
           </select>
           <select
+            data-cy="produto-limit"
             className="admin-form-input admin-list-filter-select"
             value={limit}
             onChange={(event) => { setCurrentPage(1); setLimit(Number(event.target.value) || 10); }}
@@ -237,7 +240,7 @@ function AdminProdutoLista() {
           </select>
         </div>
 
-        <button className="admin-btn-novo" onClick={novoProduto}>
+        <button data-cy="produto-novo" className="admin-btn-novo" onClick={novoProduto}>
           <Plus size={18} />
           Novo Produto
         </button>
@@ -266,7 +269,7 @@ function AdminProdutoLista() {
       ) : (
         <>
           <div className="admin-products-table-wrapper">
-            <table className="admin-products-table">
+            <table data-cy="produto-tabela" className="admin-products-table">
               <thead>
                 <tr>
                   <th>Nome</th>
@@ -278,13 +281,14 @@ function AdminProdutoLista() {
               </thead>
               <tbody>
                 {produtosFiltrados.map((prod) => (
-                  <tr key={prod.id}>
-                    <td className="admin-products-nome">{prod.nome}</td>
-                    <td>{obterNomeCategoria(prod.categoriaId)}</td>
-                    <td>{formatarMoeda(prod.custo)}</td>
-                    <td className="admin-products-preco">{formatarMoeda(prod.preco)}</td>
+                  <tr key={prod.id} data-cy={`produto-linha-${prod.id}`}>
+                    <td data-cy="produto-nome" className="admin-products-nome">{prod.nome}</td>
+                    <td data-cy="produto-categoria">{obterNomeCategoria(prod.categoriaId)}</td>
+                    <td data-cy="produto-custo">{formatarMoeda(prod.custo)}</td>
+                    <td data-cy="produto-preco" className="admin-products-preco">{formatarMoeda(prod.preco)}</td>
                     <td className="admin-products-acoes">
                       <button
+                        data-cy={`produto-editar-${prod.id}`}
                         className="admin-products-btn edit"
                         title="Editar"
                         onClick={() => editarProduto(prod)}
@@ -292,6 +296,7 @@ function AdminProdutoLista() {
                         <Edit2 size={16} />
                       </button>
                       <button
+                        data-cy={`produto-deletar-${prod.id}`}
                         className="admin-products-btn delete"
                         onClick={() => deletarProduto(prod.id)}
                         title="Deletar"
@@ -305,7 +310,7 @@ function AdminProdutoLista() {
             </table>
           </div>
 
-          <div className="admin-list-pagination">
+          <div data-cy="produto-paginacao" className="admin-list-pagination">
             <div className="admin-list-pagination__meta">
               <div className="admin-form-input admin-list-pagination__status">
                 Pagina {pagination.page} de {pagination.totalPages}
@@ -315,6 +320,7 @@ function AdminProdutoLista() {
 
             <div className="admin-products-acoes">
               <button
+                data-cy="produto-anterior"
                 className="admin-btn-novo"
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={!pagination.hasPreviousPage}
@@ -322,6 +328,7 @@ function AdminProdutoLista() {
                 Anterior
               </button>
               <button
+                data-cy="produto-proxima"
                 className="admin-btn-novo"
                 onClick={() => setCurrentPage((prev) => Math.min(pagination.totalPages, prev + 1))}
                 disabled={!pagination.hasNextPage}
