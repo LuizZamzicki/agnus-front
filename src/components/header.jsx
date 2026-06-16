@@ -1,15 +1,9 @@
-<<<<<<< HEAD
-import "../css/app.css"
-import "../css/header.css"
-import { Search, User, ShoppingBag } from "lucide-react";
-=======
 import { Search, User, ShoppingBag, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import "../css/cliente/app.css";
 import "../css/cliente/header.css";
->>>>>>> feature/home
 import logo2 from "../img/logoAgnus.png";
 
 function Header() {
@@ -99,14 +93,7 @@ function Header() {
 
             <nav className="menu_header">
                 <Link to="/" className="nav-link">Home</Link>
-<<<<<<< HEAD
-                <Link to="/produtos" className="nav-link">Produtos</Link>
-                <Link to="/contato" className="nav-link">Contato</Link>
-                <Link to="/sobre" className="nav-link">Sobre</Link>
-                <Link to="/admin" className="nav-link">Admin</Link>
-=======
                 <Link to="/catalogo" className="nav-link">Catálogo</Link>
->>>>>>> feature/home
             </nav>
 
             <nav className="opcoes_header">
