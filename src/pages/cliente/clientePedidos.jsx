@@ -102,16 +102,23 @@ function ClientePedidos() {
 
     return (
         <>
-            <h2>Meus Pedidos</h2>
+            <h2 data-cy="titulo-pedidos">
+                Meus Pedidos
+            </h2>
             {error && <div className="error">{error}</div>}
 
             {pedidos.length === 0 ? (
                 <p>Você ainda não possui pedidos.</p>
             ) : (
                 pedidos.map((pedido) => (
-                    <div key={pedido.id_pedido} className="pedido-card">
+                    <div
+                        data-cy="pedido-card"
+                        key={pedido.id_pedido}
+                        className="pedido-card"
+                    >
                         <div className="pedido-header">
                             <div
+                                data-cy="abrir-pedido"
                                 style={{
                                     display: "flex",
                                     alignItems: "center",
@@ -146,7 +153,7 @@ function ClientePedidos() {
                         </div>
 
                         {openPedido === pedido.id_pedido && (
-                            <div className="pedido-itens">
+                            <div data-cy="pedido-itens" className="pedido-itens">
                                 {pedido.itens.map((item) => (
                                     <div key={item.id_pedido_item} className="item">
                                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -165,7 +172,7 @@ function ClientePedidos() {
 
                                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                                 <div>
-                                                    <p>{item.produto?.nome || "Produto não encontrado"}</p>
+                                                    <p data-cy="item-produto">{item.produto?.nome || "Produto não encontrado"}</p>
                                                     <small>Cor: {item.cor?.nome || "—"}</small>
                                                     <small>Tamanho: {item.grade?.nome || "—"}</small>
                                                     <small>Quantidade: {item.quantidade}</small>

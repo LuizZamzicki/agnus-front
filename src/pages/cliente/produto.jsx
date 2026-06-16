@@ -79,6 +79,16 @@ function Produto() {
         setLightboxOpen(true);
     };
 
+    useEffect(() => {
+        if (tamanhos.length === 1) {
+            setTamanhoSelecionado(Number(tamanhos[0].id_produto_grade));
+        }
+
+        if (cores.length === 1) {
+            setCorSelecionada(Number(cores[0].id_produto_cor));
+        }
+    }, [tamanhos, cores]);
+
     function renderStars(media = 0, clickable = false, onClick = null) {
         const valor = Number(media) || 0;
 
@@ -532,6 +542,13 @@ function Produto() {
     }, [produto]);
 
     useEffect(() => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    }, [id_produto]);
+
+    useEffect(() => {
         async function carregarProduto() {
             try {
                 const resProduto = await fetch(`${BASE_URL}products/${id_produto}`);
@@ -572,7 +589,7 @@ function Produto() {
         <div className="produto-page">
 
             {alerta && (
-                <div className={`alerta ${alerta.tipo}`}>
+                <div data-cy="produto-alerta" className={`alerta ${alerta.tipo}`}>
                     {alerta.mensagem}
                 </div>
             )}
@@ -636,39 +653,75 @@ function Produto() {
 
                     <div className="produto-opcao">
                         <span>TAMANHO</span>
+
                         <div className="opcoes">
-                            {tamanhos.map(t => (
-                                <button
-                                    key={t.id_produto_grade}
-                                    className={tamanhoSelecionado === t.id_produto_grade ? "active" : ""}
-                                    onClick={() => setTamanhoSelecionado(Number(t.id_produto_grade))}
-                                >
-                                    {t.nome}
+                            {tamanhos.length === 0 ? (
+                                <button disabled className="indisponivel">
+                                    Indisponível
                                 </button>
-                            ))}
+                            ) : (
+                                tamanhos.map(t => (
+                                    <button
+                                        data-cy={`tamanho-${t.id_produto_grade}`}
+                                        key={t.id_produto_grade}
+                                        className={
+                                            tamanhoSelecionado === t.id_produto_grade
+                                                ? "active"
+                                                : ""
+                                        }
+                                        onClick={() =>
+                                            setTamanhoSelecionado(Number(t.id_produto_grade))
+                                        }
+                                    >
+                                        {t.nome}
+                                    </button>
+                                ))
+                            )}
                         </div>
                     </div>
 
                     <div className="produto-opcao">
                         <span>COR</span>
+
                         <div className="opcoes">
-                            {cores.map(c => (
-                                <button
-                                    key={c.id_produto_cor}
-                                    className={corSelecionada === c.id_produto_cor ? "active" : ""}
-                                    onClick={() => setCorSelecionada(Number(c.id_produto_cor))}
-                                >
-                                    {c.nome}
+                            {cores.length === 0 ? (
+                                <button disabled className="indisponivel">
+                                    Indisponível
                                 </button>
-                            ))}
+                            ) : (
+                                cores.map(c => (
+                                    <button
+                                        data-cy={`cor-${c.id_produto_cor}`}
+                                        key={c.id_produto_cor}
+                                        className={
+                                            corSelecionada === c.id_produto_cor
+                                                ? "active"
+                                                : ""
+                                        }
+                                        onClick={() =>
+                                            setCorSelecionada(Number(c.id_produto_cor))
+                                        }
+                                    >
+                                        {c.nome}
+                                    </button>
+                                ))
+                            )}
                         </div>
                     </div>
 
-                    {!isAdmin && (
-                        <button className="btn-comprar" onClick={adicionarCarrinho}>
-                            ADICIONAR AO CARRINHO
-                        </button>
-                    )}
+                    <button
+                        data-cy="adicionar-carrinho"
+                        className="btn-comprar"
+                        onClick={adicionarCarrinho}
+                        disabled={cores.length === 0 || tamanhos.length === 0}
+                    >
+                        {cores.length === 0 || tamanhos.length === 0
+                            ? "PRODUTO INDISPONÍVEL"
+                            : isAdmin
+                                ? "INDISPONÍVEL PARA ADMIN"
+                                : "ADICIONAR AO CARRINHO"}
+                    </button>
+
                 </div>
             </div>
 
@@ -690,7 +743,7 @@ function Produto() {
                     </div>
 
                     {podeAvaliar && (
-                        <button onClick={() => setMostrarForm(!mostrarForm)}>
+                        <button data-cy="escrever-avaliacao" onClick={() => setMostrarForm(!mostrarForm)}>
                             {mostrarForm ? "Cancelar" : "Escrever avaliação"}
                         </button>
                     )}
@@ -701,6 +754,7 @@ function Produto() {
 
                         <span>Nome</span>
                         <input
+                            data-cy="nome-avaliacao"
                             placeholder="Digite seu Nome (Opcional)"
                             value={novaAvaliacao.titulo}
                             onChange={(e) =>
@@ -714,6 +768,7 @@ function Produto() {
                         )}
 
                         <input
+                            data-cy="nota-avaliacao"
                             className="notaValue"
                             type="number"
                             step="0.5"
@@ -724,6 +779,7 @@ function Produto() {
                         />
 
                         <textarea
+                            data-cy="comentario-avaliacao"
                             placeholder="Comentário"
                             value={novaAvaliacao.comentario}
                             onChange={(e) =>
@@ -735,6 +791,7 @@ function Produto() {
                             <span>Fotos (máx 4)</span>
 
                             <input
+                                data-cy="foto-avaliacao"
                                 type="file"
                                 accept="image/*"
                                 multiple
@@ -759,46 +816,50 @@ function Produto() {
                             )}
                         </div>
 
-                        <button onClick={enviarAvaliacao}>
+                        <button data-cy="enviar-avaliacao" onClick={enviarAvaliacao}>
                             Enviar avaliação
                         </button>
                     </div>
                 )}
 
-                {avaliacoes.map((a, i) => (
-                    <div key={i} className="avaliacao-card">
-
-                        <div className="avaliacao-top">
-                            <div className="avaliacao-usuario">
-                                <strong>{a.titulo?.trim() || "Usuário Anônimo"}</strong>
-                                <span>Comentário: <br /></span>
-                            </div>
-
-                            {renderStars(a.nota)}
-                        </div>
-
-                        <p>{a.comentario}</p>
-
-                        {a.imagens?.length > 0 && (
-                            <div className="avaliacao-imagens-lista">
-                                {a.imagens
-                                    .filter(img => img && img.trim() !== "")
-                                    .map((img, idx) => (
-                                        <img
-                                            key={idx}
-                                            src={img}
-                                            alt=""
-                                            className="avaliacao-img"
-                                            onClick={() => abrirLightbox(a.imagens, idx)}
-                                            onError={(e) => (e.currentTarget.style.display = "none")}
-                                            style={{ cursor: "zoom-in" }}
-                                        />
-                                    ))}
-                            </div>
-                        )}
-
+                {avaliacoes.length === 0 ? (
+                    <div className="sem-avaliacoes">
+                        Ainda não há avaliações para este produto.
+                        <br />
+                        Realize seu pedido e seja o primeiro a avaliar!
                     </div>
-                ))}
+                ) : (
+                    avaliacoes.map((a, i) => (
+                        <div key={i} className="avaliacao-card">
+                            <div className="avaliacao-top">
+                                <div className="avaliacao-usuario">
+                                    <strong>{a.titulo?.trim() || "Usuário Anônimo"}</strong>
+                                    <span>Comentário: <br /></span>
+                                </div>
+
+                                {renderStars(a.nota)}
+                            </div>
+
+                            <p>{a.comentario}</p>
+
+                            {a.imagens?.length > 0 && (
+                                <div className="avaliacao-imagens-lista">
+                                    {a.imagens
+                                        .filter(img => img && img.trim() !== "")
+                                        .map((img, idx) => (
+                                            <img
+                                                key={idx}
+                                                src={img}
+                                                alt=""
+                                                className="avaliacao-img"
+                                                onClick={() => abrirLightbox(a.imagens, idx)}
+                                            />
+                                        ))}
+                                </div>
+                            )}
+                        </div>
+                    ))
+                )}
 
             </div>
 
@@ -807,7 +868,11 @@ function Produto() {
 
                 <div className="relacionados-grid">
                     {relacionados.map(p => (
-                        <div className="relacionado-card" key={p.id_produto}>
+                        <Link
+                            to={`/produto/${p.id_produto}`}
+                            className="relacionado-card"
+                            key={p.id_produto}
+                        >
                             {p.img && <img src={p.img} alt={p.nome} />}
 
                             <h3>{p.nome}</h3>
@@ -817,13 +882,7 @@ function Produto() {
                                     minimumFractionDigits: 2
                                 })}
                             </span>
-
-                            <Link to={`/produto/${p.id_produto}`}>
-                                <button className="btn-ver-produto">
-                                    Ver produto
-                                </button>
-                            </Link>
-                        </div>
+                        </Link>
                     ))}
                 </div>
             </div>

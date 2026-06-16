@@ -306,12 +306,14 @@ function Login() {
           {modoCadastro && (
             <>
               <input
+                data-cy="nome"
                 name="nome"
                 placeholder="Seu nome completo"
                 onChange={handleChange}
                 required
               />
               <input
+                data-cy="cpf"
                 name="cpf"
                 placeholder="CPF"
                 value={form.cpf}
@@ -322,15 +324,18 @@ function Login() {
           )}
 
           <input
+            data-cy="email"
             type="email"
             name="email"
             placeholder="seu@email.com"
+            value={form.email}
             onChange={handleChange}
             required
           />
 
           <div className="input-group">
             <input
+              data-cy="password"
               type={mostrarSenha ? "text" : "password"}
               name="senha"
               placeholder="Senha"
@@ -347,28 +352,50 @@ function Login() {
             </span>
           </div>
 
-          {/* 🔥 SENHA FORÇA (MESMA LÓGICA DO OUTRO COMPONENTE) */}
           {modoCadastro && senhaForca && (
             <div className="senha-forca-box">
-              <div className={`senha-bar ${senhaForca.label}`} />
+
+              <div className="senha-bar-wrapper">
+                <div
+                  className={`senha-bar ${senhaForca.label}`}
+                  style={{ width: `${senhaForca.percentage}%` }}
+                />
+              </div>
 
               <small className="forca-texto">
                 Força: {senhaForca.label.replace("_", " ")}
               </small>
 
-              <ul className="senha-checks">
-                {senhaForca.checks.map((check) => (
-                  <li key={check.id} className={check.passed ? "ok" : "erro"}>
-                    {check.label}
-                  </li>
-                ))}
-              </ul>
+              {senhaForca.checks.some(
+                (check) => !check.passed && check.id !== "longLength"
+              ) && (
+                  <ul className="senha-checks">
+                    {senhaForca.checks
+                      .filter(
+                        (check) =>
+                          !check.passed &&
+                          check.id !== "longLength"
+                      )
+                      .map((check) => (
+                        <li key={check.id} className="erro">
+                          {check.label}
+                        </li>
+                      ))}
+                  </ul>
+                )}
+
+              {senhaForca.isValid && (
+                <div className="senha-ok">
+                  Senha atende todos os requisitos.
+                </div>
+              )}
             </div>
           )}
 
           {modoCadastro && (
             <div className="input-group">
               <input
+                data-cy="confirm-password"
                 type={mostrarConfirmarSenha ? "text" : "password"}
                 name="confirmarSenha"
                 placeholder="Confirmar senha"
@@ -388,9 +415,13 @@ function Login() {
           )}
 
           {success && <div className="success-message">{success}</div>}
-          {error && <div className="error-message">{error}</div>}
+          {error && <div data-cy="error" className="error-message">{error}</div>}
 
-          <button type="submit" disabled={loading}>
+          <button
+            data-cy="submit-login"
+            type="submit"
+            disabled={loading}
+          >
             {loading ? "Carregando..." : modoCadastro ? "Criar conta" : "Entrar"}
           </button>
         </form>

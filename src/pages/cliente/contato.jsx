@@ -40,6 +40,7 @@ function Contato() {
             <form className="form-contato" onSubmit={handleSubmit}>
                 <label>Nome:</label>
                 <input
+                    data-cy="nome-contato"
                     type="text"
                     placeholder="Digite seu nome completo"
                     value={nome}
@@ -48,6 +49,7 @@ function Contato() {
 
                 <label>Email:</label>
                 <input
+                    data-cy="email-contato"
                     type="email"
                     placeholder="Digite seu email"
                     value={email}
@@ -56,17 +58,18 @@ function Contato() {
 
                 <label>Mensagem:</label>
                 <textarea
+                    data-cy="mensagem-contato"
                     placeholder="Digite sua mensagem"
                     value={mensagem}
                     onChange={(e) => setMensagem(e.target.value)}
                 />
 
-                <button type="submit" className="botao-enviar">
+                <button data-cy="enviar-contato" type="submit" className="botao-enviar">
                     Enviar Mensagem
                 </button>
 
                 {envSuccess && (
-                    <p className="mensagem-sucesso">
+                    <p data-cy="mensagem-sucesso" className="mensagem-sucesso">
                         Mensagem enviada com sucesso!
                     </p>
                 )}

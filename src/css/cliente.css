@@ -9,6 +9,7 @@
     gap: 30px;
     max-width: 1200px;
     margin: auto;
+    margin-top: 60px;
 }
 
 .perfil-menu {
@@ -90,7 +91,6 @@
 
 .input-group {
     position: relative;
-    margin-bottom: 20px;
 }
 
 .password-toggle {

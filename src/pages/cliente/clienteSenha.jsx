@@ -134,7 +134,7 @@ function ClienteSenha() {
 
     return (
         <section className="perfil-content">
-            <h2>Alterar Senha</h2>
+            <h2 data-cy="titulo-senha">Alterar Senha</h2>
 
             <form onSubmit={handleSubmit} className="senha-form">
 
@@ -142,6 +142,7 @@ function ClienteSenha() {
                     <div className="input-wrapper">
                         <label>Senha Atual *</label>
                         <input
+                            data-cy="senha-atual"
                             type={mostrarSenha.atual ? "text" : "password"}
                             placeholder="Digite sua Senha Atual"
                             name="senhaAtual"
@@ -163,6 +164,7 @@ function ClienteSenha() {
 
                     <div className="input-wrapper">
                         <input
+                            data-cy="nova-senha"
                             type={mostrarSenha.nova ? "text" : "password"}
                             placeholder="Digite sua Nova Senha"
                             name="novaSenha"
@@ -184,9 +186,14 @@ function ClienteSenha() {
                     {passwordInfo && (
                         <div className="senha-forca-box">
 
-                            <div className={`senha-bar ${passwordInfo.label}`} />
+                            <div className="senha-bar-wrapper">
+                                <div
+                                    className={`senha-bar ${passwordInfo.label}`}
+                                    style={{ width: `${passwordInfo.percentage}%` }}
+                                />
+                            </div>
 
-                            <small className="forca-texto">
+                            <small data-cy="forca-senha" className="forca-texto">
                                 Força: {passwordInfo.label.replace("_", " ")}
                             </small>
 
@@ -196,13 +203,29 @@ function ClienteSenha() {
                                 </small>
                             )}
 
-                            <ul className="senha-checks">
-                                {passwordInfo.checks.map(check => (
-                                    <li key={check.id} className={check.passed ? "ok" : "erro"}>
-                                        {check.label}
-                                    </li>
-                                ))}
-                            </ul>
+                            {passwordInfo.checks.some(
+                                (check) => !check.passed && check.id !== "longLength"
+                            ) && (
+                                    <ul className="senha-checks">
+                                        {passwordInfo.checks
+                                            .filter(
+                                                (check) =>
+                                                    !check.passed &&
+                                                    check.id !== "longLength"
+                                            )
+                                            .map((check) => (
+                                                <li key={check.id} className="erro">
+                                                    {check.label}
+                                                </li>
+                                            ))}
+                                    </ul>
+                                )}
+
+                            {passwordInfo.isValid && (
+                                <div className="senha-ok">
+                                    Senha atende todos os requisitos.
+                                </div>
+                            )}
 
                         </div>
                     )}
@@ -212,6 +235,7 @@ function ClienteSenha() {
                     <div className="input-wrapper">
                         <label>Confirmar Nova Senha *</label>
                         <input
+                            data-cy="confirmar-senha"
                             type={mostrarSenha.confirmar ? "text" : "password"}
                             placeholder="Digite Novamente sua Nova Senha"
                             name="confirmarSenha"
@@ -229,12 +253,13 @@ function ClienteSenha() {
                 </div>
 
                 {toast.msg && (
-                    <div className={`toast-card ${toast.type}`}>
+                    <div data-cy="toast" className={`toast-card ${toast.type}`}>
                         {toast.msg}
                     </div>
                 )}
 
                 <button
+                    data-cy="alterar-senha"
                     type="submit"
                     disabled={
                         loading ||

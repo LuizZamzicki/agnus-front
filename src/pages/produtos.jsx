@@ -126,17 +126,18 @@ function Produtos() {
   }
 
   return (
-    <main className="product-listing">
+    <main data-cy="produtos-page" className="product-listing">
       <h1>Produtos</h1>
 
       <div className="filters">
         <input
+          data-cy="buscar-produto"
           placeholder="Buscar produto..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
 
-        <select onChange={(e) => setCategoria(e.target.value)}>
+        <select data-cy="filtro-categoria" onChange={(e) => setCategoria(e.target.value)}>
           <option value="">Categorias</option>
           {categorias.map((c) => (
             <option key={c.id} value={c.id}>
@@ -155,7 +156,7 @@ function Produtos() {
 
           return (
             <Link key={p.id} to={`/produtos/${p.id}`}>
-              <div className="produto-card">
+              <div data-cy="produto-card" className="produto-card">
                 {p.fotos?.[0] ? (
                   <img
                     src={

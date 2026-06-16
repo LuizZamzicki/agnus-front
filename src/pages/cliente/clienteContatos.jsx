@@ -225,7 +225,7 @@ function ClienteContatos() {
         <>
             <div className="enderecos-header">
                 <h2>Meus Contatos</h2>
-                <button className="btn-novo" onClick={abrirNovo}>
+                <button data-cy="novo-contato" className="btn-novo" onClick={abrirNovo}>
                     + Novo contato
                 </button>
             </div>
@@ -234,6 +234,7 @@ function ClienteContatos() {
                 {contatos.map(c => (
                     <div
                         key={c.id_usuario_contato}
+                        data-cy="contato-card"
                         className={`endereco-card ${c.principal ? "principal" : ""}`}
                         onClick={() => {
                             if (!c.principal) setConfirmPrincipal(c);
@@ -251,14 +252,14 @@ function ClienteContatos() {
                         )}
 
                         <div className="acoes">
-                            <span onClick={(e) => {
+                            <span data-cy="editar-contato" onClick={(e) => {
                                 e.stopPropagation();
                                 abrirEditar(c);
                             }}>
                                 Editar
                             </span>
 
-                            <span onClick={(e) => {
+                            <span data-cy="excluir-contato" onClick={(e) => {
                                 e.stopPropagation();
                                 setConfirmDelete(c);
                             }}>
@@ -280,6 +281,7 @@ function ClienteContatos() {
                         <div className="form-group">
                             <label>Tipo *</label>
                             <select
+                                data-cy="tipo-contato"
                                 value={form.tipo}
                                 onChange={(e) => setForm({ ...form, tipo: e.target.value, valor: "" })}
                             >
@@ -302,6 +304,7 @@ function ClienteContatos() {
                                                 ? "(00) 00000-0000"
                                                 : "Digite o contato"
                                 }
+                                data-cy="valor-contato"
                                 value={form.valor}
                                 onChange={(e) => {
                                     let val = e.target.value;
@@ -320,8 +323,11 @@ function ClienteContatos() {
                         </div>
 
                         <div className="modal-actions">
-                            <button onClick={() => setModalOpen(false)}>Cancelar</button>
+                            <button data-cy="cancelar-contato" onClick={() => setModalOpen(false)}>
+                                Cancelar
+                            </button>
                             <button
+                                data-cy="salvar-contato"
                                 onClick={() => {
                                     if (!form.valor.trim()) {
                                         showMessage("error", "Preencha o valor do contato.");
@@ -371,6 +377,7 @@ function ClienteContatos() {
                                 Cancelar
                             </button>
                             <button
+                                data-cy="confirmar-excluir-contato"
                                 className="danger"
                                 onClick={() => handleDelete(confirmDelete.id_usuario_contato)}
                             >

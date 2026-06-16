@@ -12,6 +12,29 @@ function Header() {
     const [token, setToken] = useState(null);
     const [auth, setAuth] = useState(null);
 
+    const [showHeader, setShowHeader] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+
+            if (currentScrollY < 50) {
+                setShowHeader(true);
+            } else if (currentScrollY > lastScrollY) {
+                setShowHeader(false);
+            } else {
+                setShowHeader(true);
+            }
+
+            setLastScrollY(currentScrollY);
+        };
+
+        window.addEventListener("scroll", handleScroll);
+
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, [lastScrollY]);
+
     function loadAuth() {
         const t = localStorage.getItem("auth_token");
         const a = localStorage.getItem("auth");
@@ -61,7 +84,7 @@ function Header() {
     }, []);
 
     return (
-        <header className="header">
+        <header className={`header ${showHeader ? "show" : "hide"}`}>
             <div className="logo">
                 <Link className="logoInicio" to="/">
                     <img className="logoAgnusImg" src={logo2} alt="logo" />

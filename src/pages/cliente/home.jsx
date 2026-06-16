@@ -138,7 +138,7 @@ function Home() {
     }
 
     return (
-        <main className="home">
+        <main data-cy="home-page" className="home">
             <section className="hero" style={{ backgroundImage: `url(${hero})` }}>
                 <div className="hero-text">
                     <span className="tag-home">SAÚDE • FÉ • PROPÓSITO</span>
@@ -151,8 +151,9 @@ function Home() {
                         exclusividade e consciência em cada peça.
                     </p>
                     <div className="hero-buttons">
-                        <a className="btn-primary" href="#">VER COLEÇÃO</a>
-                        <a className="btn-secondary" href="#">SAIBA MAIS</a>
+                        <Link data-cy="ver-colecao" to="/catalogo" className="btn-primary">
+                            VER COLEÇÃO
+                        </Link>
                     </div>
                 </div>
             </section>
@@ -184,10 +185,25 @@ function Home() {
 
                             return (
                                 <SwiperSlide key={prod.id_produto}>
-                                    <div className="product-card">
+                                    <div
+                                        data-cy="produto-card-home"
+                                        className="product-card"
+                                        key={prod.id_produto}
+                                        onClick={() => navigate(`/produto/${prod.id_produto}`)}
+                                        style={{ cursor: "pointer" }}
+                                    >
                                         <div className="product-image">
-                                            <img src={imgPadrao} className="img-default" onError={(e) => e.target.src = hero} />
-                                            <img src={imgHover} className="img-hover" onError={(e) => e.target.src = hero} />
+                                            <img
+                                                src={imgPadrao}
+                                                className="img-default"
+                                                onError={(e) => (e.target.src = hero)}
+                                            />
+
+                                            <img
+                                                src={imgHover}
+                                                className="img-hover"
+                                                onError={(e) => (e.target.src = hero)}
+                                            />
                                         </div>
 
                                         <div className="product-info">
@@ -196,14 +212,10 @@ function Home() {
                                             {renderStars(avaliacoes[prod.id_produto])}
 
                                             <span>
-                                                R$ {Number(prod.preco_base || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                                R$ {Number(prod.preco_base || 0).toLocaleString("pt-BR", {
+                                                    minimumFractionDigits: 2
+                                                })}
                                             </span>
-                                        </div>
-
-                                        <div className="product-hover">
-                                            <button onClick={() => navigate(`/produto/${prod.id_produto}`)}>
-                                                VER PRODUTO
-                                            </button>
                                         </div>
                                     </div>
                                 </SwiperSlide>
@@ -221,6 +233,7 @@ function Home() {
 
                 <div className="catalog-filters">
                     <button
+                        data-cy="filtro-todos"
                         className={filtro === "todos" ? "active" : ""}
                         onClick={() => {
                             setFiltro("todos");
@@ -232,6 +245,7 @@ function Home() {
 
                     {categorias.map(cat => (
                         <button
+                            data-cy={`filtro-${cat.id_categoria}`}
                             key={cat.id_categoria}
                             className={Number(filtro) === cat.id_categoria ? "active" : ""}
                             onClick={() => {
@@ -251,10 +265,24 @@ function Home() {
                             const imgHover = prod.imagens[1] || imgPadrao;
 
                             return (
-                                <div className="product-card" key={prod.id_produto}>
+                                <div
+                                    className="product-card"
+                                    key={prod.id_produto}
+                                    onClick={() => navigate(`/produto/${prod.id_produto}`)}
+                                    style={{ cursor: "pointer" }}
+                                >
                                     <div className="product-image">
-                                        <img src={imgPadrao} className="img-default" onError={(e) => e.target.src = hero} />
-                                        <img src={imgHover} className="img-hover" onError={(e) => e.target.src = hero} />
+                                        <img
+                                            src={imgPadrao}
+                                            className="img-default"
+                                            onError={(e) => (e.target.src = hero)}
+                                        />
+
+                                        <img
+                                            src={imgHover}
+                                            className="img-hover"
+                                            onError={(e) => (e.target.src = hero)}
+                                        />
                                     </div>
 
                                     <div className="product-info">
@@ -263,14 +291,10 @@ function Home() {
                                         {renderStars(avaliacoes[prod.id_produto])}
 
                                         <span>
-                                            R$ {Number(prod.preco_base || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                            R$ {Number(prod.preco_base || 0).toLocaleString("pt-BR", {
+                                                minimumFractionDigits: 2
+                                            })}
                                         </span>
-                                    </div>
-
-                                    <div className="product-hover">
-                                        <button onClick={() => navigate(`/produto/${prod.id_produto}`)}>
-                                            VER PRODUTO
-                                        </button>
                                     </div>
                                 </div>
                             );
