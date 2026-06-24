@@ -806,6 +806,7 @@ function AdminProdutoCadastro() {
               <div className="admin-form-input-prefix">
                 <span>+</span>
                 <input
+                  data-cy="nova-grade-acrescimo"
                   type="number"
                   placeholder="0,00"
                   step="0.01"

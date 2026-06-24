@@ -40,8 +40,7 @@ function ClientePedidos() {
                 const pedidosData = await resPedidos.json();
 
                 if (!resPedidos.ok) {
-                    setError("Erro ao carregar pedidos.");
-                    return;
+                    throw new Error("Erro ao carregar pedidos.");
                 }
 
                 const meusPedidos = pedidosData.filter(
@@ -84,8 +83,8 @@ function ClientePedidos() {
 
                 setPedidos(pedidosComItens);
 
-            } catch {
-                setError("Erro ao conectar com servidor.");
+            } catch (err) {
+                setError(err.message || "Erro ao conectar com servidor.");
             } finally {
                 setLoading(false);
             }
@@ -105,7 +104,7 @@ function ClientePedidos() {
             <h2 data-cy="titulo-pedidos">
                 Meus Pedidos
             </h2>
-            {error && <div className="error">{error}</div>}
+            {error && <div data-cy="erro-pedidos" className="error">{error}</div>}
 
             {pedidos.length === 0 ? (
                 <p>Você ainda não possui pedidos.</p>

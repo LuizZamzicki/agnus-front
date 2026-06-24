@@ -3,7 +3,7 @@ import hero from "../../img/hero.png";
 import { Brush, Truck, Shield, Star } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { apiUrl, assetUrl } from "../../utils/api";
 
 import "swiper/css";

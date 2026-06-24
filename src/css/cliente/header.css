@@ -1,4 +1,4 @@
-.header {
+/* .header {
     position: fixed;
     background-color: rgb(31, 31, 31);
     justify-content: space-between;
@@ -10,6 +10,22 @@
     left: 0;
     width: 100%;
     z-index: 999;
+    transition: transform 0.35s ease;
+} */
+
+.header {
+    position: fixed;
+    background-color: rgb(31, 31, 31);
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 35px;
+    color: white;
+    display: flex;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    z-index: 100;
     transition: transform 0.35s ease;
 }
 

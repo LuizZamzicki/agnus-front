@@ -16,14 +16,26 @@ function normalizarUsuario(item, index = 0) {
   return {
     id: item?.id_usuario ?? item?.id ?? item?.user_id ?? `usuario-${index}`,
     nome:
-      item?.nome ??
-      item?.nome_usuario ??
-      item?.usuario_nome ??
-      item?.name ??
-      item?.username ??
-      "-",
-    email: item?.email ?? item?.email_usuario ?? item?.user_email ?? "-",
-    tipo: item?.tipo ?? item?.role ?? item?.perfil ?? "-",
+      String(
+        item?.nome ??
+        item?.nome_usuario ??
+        item?.usuario_nome ??
+        item?.name ??
+        item?.username ??
+        ""
+      ),
+    email: String(
+      item?.email ??
+      item?.email_usuario ??
+      item?.user_email ??
+      ""
+    ),
+    tipo: String(
+      item?.tipo ??
+      item?.role ??
+      item?.perfil ??
+      ""
+    ).trim().toLowerCase(),
     dataCriacao: item?.data_criacao ?? item?.created_at ?? item?.dataCadastro ?? null,
   };
 }
@@ -62,71 +74,116 @@ function AdminUsuarioLista() {
   const [pagination, setPagination] = useState(PAGINACAO_INICIAL);
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [usuariosBuscaFiltro, usuariosTipoFiltro]);
-
-  useEffect(() => {
-    let ativo = true;
 
     async function carregarUsuarios() {
-      setUsuariosError("");
+
       setUsuariosLoading(true);
 
       try {
-        const { response, payload, data, pagination: meta, request } = await fetchJsonPaginado("/users", {
-          page: currentPage,
-          limit,
-          headers: getAuthHeaders(),
-          fetcher: apiFetch,
-        });
+
+        const { response, payload, data, pagination: meta } =
+          await fetchJsonPaginado("/users", {
+            page: currentPage,
+            limit,
+            headers: getAuthHeaders(),
+            fetcher: apiFetch,
+          });
+
 
         if (!response.ok) {
-          if (ativo) setUsuariosError(payload?.message || "Erro ao carregar usuarios.");
+          setUsuariosError(
+            payload?.message || "Erro ao carregar usuarios."
+          );
           return;
         }
 
-        if (ativo) {
-          setUsuarios(data.map((item, index) => normalizarUsuario(item, index)));
-          setPagination(meta);
-          if (request.page !== currentPage) {
-            setCurrentPage(request.page);
-          }
-          if (request.limit !== limit) {
-            setLimit(request.limit);
-          }
-        }
+
+        setUsuarios(
+          data.map((item, index) =>
+            normalizarUsuario(item, index)
+          )
+        );
+
+
+        setPagination(meta);
+
+
       } catch {
-        if (ativo) setUsuariosError("Erro ao conectar no servidor.");
+
+        setUsuariosError(
+          "Erro ao conectar no servidor."
+        );
+
       } finally {
-        if (ativo) setUsuariosLoading(false);
+
+        setUsuariosLoading(false);
+
       }
+
     }
 
+
     carregarUsuarios();
-    return () => {
-      ativo = false;
-    };
+
+
   }, [currentPage, limit]);
 
   const tiposDisponiveis = useMemo(() => {
     return [...new Set(usuarios.map((usuario) => usuario.tipo).filter((tipo) => tipo && tipo !== "-"))];
   }, [usuarios]);
 
+  // const usuariosFiltrados = useMemo(() => {
+
+  //   return usuarios.filter((usuario) => {
+
+
+  //     if (
+  //       usuariosTipoFiltro !== "todos" &&
+  //       usuario.tipo !== usuariosTipoFiltro
+  //     ) {
+  //       return false;
+  //     }
+
+
+  //     return true;
+
+  //   });
+
+
+  // }, [
+  //   usuarios,
+  //   usuariosTipoFiltro
+  // ]);
+
   const usuariosFiltrados = useMemo(() => {
-    const busca = usuariosBuscaFiltro.trim().toLowerCase();
 
     return usuarios.filter((usuario) => {
-      const bateBusca =
-        !busca ||
-        String(usuario.id).toLowerCase().includes(busca) ||
-        usuario.nome.toLowerCase().includes(busca) ||
-        usuario.email.toLowerCase().includes(busca) ||
-        formatarTipoUsuario(usuario.tipo).toLowerCase().includes(busca);
 
-      const bateTipo = usuariosTipoFiltro === "todos" || usuario.tipo === usuariosTipoFiltro;
-      return bateBusca && bateTipo;
+      const termo = usuariosBuscaFiltro.toLowerCase();
+
+      const correspondeBusca =
+        usuario.nome.toLowerCase().includes(termo) ||
+        usuario.email.toLowerCase().includes(termo) ||
+        String(usuario.id).includes(termo) ||
+        usuario.tipo.toLowerCase().includes(termo);
+
+      if (!correspondeBusca)
+        return false;
+
+      if (
+        usuariosTipoFiltro !== "todos" &&
+        usuario.tipo !== usuariosTipoFiltro
+      ) {
+        return false;
+      }
+
+      return true;
     });
-  }, [usuarios, usuariosBuscaFiltro, usuariosTipoFiltro]);
+  }, [
+    usuarios,
+    usuariosTipoFiltro,
+    usuariosBuscaFiltro
+  ]);
 
   return (
     <div className="admin-products-list">
@@ -147,11 +204,8 @@ function AdminUsuarioLista() {
             onChange={(e) => setUsuariosTipoFiltro(e.target.value)}
           >
             <option value="todos">Todos os tipos</option>
-            {tiposDisponiveis.map((tipo) => (
-              <option key={tipo} value={tipo}>
-                {formatarTipoUsuario(tipo)}
-              </option>
-            ))}
+            <option value="cliente">Cliente</option>
+            <option value="administrador">Administrador</option>
           </select>
           <select
             data-cy="usuario-limit"
@@ -200,32 +254,33 @@ function AdminUsuarioLista() {
                 </tr>
               </thead>
               <tbody>
-                {usuariosFiltrados.map((usuario) => (
-                  <tr data-cy={`usuario-linha-${usuario.id}`} key={usuario.id}>
-                    <td data-cy="usuario-id">
-                      {usuario.id}
-                    </td>
-
-                    <td
-                      data-cy="usuario-nome"
-                      className="admin-products-nome"
+                {
+                  usuariosFiltrados.map((usuario) => (
+                    <tr
+                      data-cy="usuario-item"
+                      data-id={usuario.id}
+                      key={usuario.id}
                     >
-                      {usuario.nome}
-                    </td>
 
-                    <td data-cy="usuario-email">
-                      {usuario.email}
-                    </td>
+                      <td data-cy="usuario-id">
+                        {usuario.id}
+                      </td>
 
-                    <td data-cy="usuario-tipo">
-                      {formatarTipoUsuario(usuario.tipo)}
-                    </td>
+                      <td data-cy="usuario-nome">
+                        {usuario.nome}
+                      </td>
 
-                    <td data-cy="usuario-cadastro">
-                      {formatarDataUsuario(usuario.dataCriacao)}
-                    </td>
-                  </tr>
-                ))}
+                      <td data-cy="usuario-email">
+                        {usuario.email}
+                      </td>
+
+                      <td data-cy="usuario-tipo">
+                        {formatarTipoUsuario(usuario.tipo)}
+                      </td>
+
+                    </tr>
+                  ))
+                }
               </tbody>
             </table>
           </div>

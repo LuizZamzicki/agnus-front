@@ -1,22 +1,34 @@
-import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
+// import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+// import { useState } from "react";
 import { FiUser, FiPackage, FiMapPin, FiPhone, FiLock, FiLogOut } from "react-icons/fi";
 
 import "../../css/cliente.css";
 
+
 function Cliente() {
+
     const navigate = useNavigate();
     const location = useLocation();
 
-    const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-    const user = auth?.user || {};
+
+    const user = JSON.parse(
+        localStorage.getItem("auth") || "{}"
+    )?.user || {};
+
 
     const isGoogleUser =
-        !!user?.google_id || !!user?.email?.includes("gmail");
+        !!user?.google_id;
 
     function handleLogout() {
+
         localStorage.removeItem("auth");
         localStorage.removeItem("auth_token");
-        navigate("/login");
+
+        navigate("/login", {
+            replace: true
+        });
+
     }
 
     function isActive(path) {
@@ -29,57 +41,62 @@ function Cliente() {
 
                 <aside className="perfil-menu">
 
-                    <Link
+                    <button
+                        type="button"
                         data-cy="menu-perfil"
-                        to=""
-                        className={`menu-item ${location.pathname === "/cliente" ? "active" : ""}`}
+                        onClick={() => navigate("/cliente")}
+                        className="menu-item"
                     >
                         <FiUser className="menu-icon" />
                         Meu Perfil
-                    </Link>
+                    </button>
 
-                    <Link
+                    <button
+                        type="button"
                         data-cy="menu-pedidos"
-                        to="pedidos"
+                        onClick={() => navigate("/cliente/pedidos")}
                         className={`menu-item ${isActive("/cliente/pedidos") ? "active" : ""}`}
                     >
                         <FiPackage className="menu-icon" />
                         Meus Pedidos
-                    </Link>
+                    </button>
 
-                    <Link
+                    <button
+                        type="button"
                         data-cy="menu-enderecos"
-                        to="enderecos"
+                        onClick={() => navigate("/cliente/enderecos")}
                         className={`menu-item ${isActive("/cliente/enderecos") ? "active" : ""}`}
                     >
                         <FiMapPin className="menu-icon" />
                         Endereços
-                    </Link>
+                    </button>
 
-                    <Link
+                    <button
+                        type="button"
                         data-cy="menu-contatos"
-                        to="contatos"
+                        onClick={() => navigate("/cliente/contatos")}
                         className={`menu-item ${isActive("/cliente/contatos") ? "active" : ""}`}
                     >
                         <FiPhone className="menu-icon" />
                         Contatos
-                    </Link>
+                    </button>
 
                     {!isGoogleUser && (
-                        <Link
+                        <button
+                            type="button"
                             data-cy="menu-senha"
-                            to="senha"
+                            onClick={() => navigate("/cliente/senha")}
                             className={`menu-item ${isActive("/cliente/senha") ? "active" : ""}`}
                         >
                             <FiLock className="menu-icon" />
                             Alterar Senha
-                        </Link>
+                        </button>
                     )}
 
-                    <div data-cy="logout" className="menu-item logout" onClick={handleLogout}>
+                    <button type="button" data-cy="logout" className="menu-item logout" onClick={handleLogout}>
                         <FiLogOut className="menu-icon" />
                         Sair
-                    </div>
+                    </button>
 
                 </aside>
 

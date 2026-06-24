@@ -26,8 +26,19 @@
     font-weight: 500;
     text-decoration: none;
     color: #111;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: transparent;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    cursor: pointer;
+    text-align: left;
     transition: all 0.2s ease;
+    font-family: inherit;
+    font-size: inherit;
 }
 
 .menu-item:hover {

@@ -35,56 +35,66 @@
 //     }
 //   }
 // }
-
 Cypress.Commands.add("loginAdmin", () => {
 
     const usuario = {
 
         nome: "Admin Cypress",
         email: "admin.cypress@teste.com",
-        cpf: "12345678909",
-        senha: "12345678!A"
+        senha: "12345678!Aa",
+        tipo: "administrador"
+
     };
 
     cy.request({
 
         method: "POST",
-        url: "http://localhost:3001/users",
+        url: "https://localhost/api/users",
         body: usuario,
         failOnStatusCode: false
 
     })
-        .then(() => {
+        .then((response) => {
+
+            cy.log(
+                "Criacao usuario:",
+                JSON.stringify(response.body)
+            );
 
             cy.request({
 
                 method: "POST",
-                url: "http://localhost:3001/auth/login",
+                url: "https://localhost/api/auth/login",
+                headers: {
+
+                    "Content-Type": "application/json"
+
+                },
 
                 body: {
                     email: usuario.email,
                     senha: usuario.senha
                 }
             })
-        })
-        .then((response) => {
+                .then((login) => {
 
-            expect(response.status)
-                .to.eq(200);
+                    cy.log(
+                        "Login:",
+                        JSON.stringify(login.body)
+                    );
 
-            const token =
-                response.body.token ||
-                response.body.access_token ||
-                response.body.accessToken;
+                    expect(login.status)
+                        .eq(200);
 
-            window.localStorage.setItem(
-                "auth_token",
-                token
-            );
+                    localStorage.setItem(
+                        "auth_token",
+                        login.body.token
+                    );
 
-            window.localStorage.setItem(
-                "auth",
-                JSON.stringify(response.body)
-            );
+                    localStorage.setItem(
+                        "auth",
+                        JSON.stringify(login.body)
+                    );
+                });
         });
 });

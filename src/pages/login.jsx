@@ -219,7 +219,7 @@ function Login() {
 
         setTimeout(() => {
           setModoCadastro(false);
-          setSuccess("");
+          // setSuccess("");
         }, 1000);
       } else {
         const response = await fetch(apiUrl("auth/login"), {

@@ -1,15 +1,15 @@
 import { defineConfig } from "cypress";
 
 export default defineConfig({
-  e2e: {
-    baseUrl: "http://localhost:3001",
 
+  e2e: {
+    baseUrl: "https://localhost",
     env: {
-      apiUrl: "http://localhost:5000",
+      apiUrl: "/api/"
     },
 
     setupNodeEvents(on, config) {
-      // implement node event listeners here
+
       return config;
     },
   },

@@ -14,32 +14,18 @@ describe('Catálogo de produtos', () => {
             })
         );
 
-    });
-
-    it('deve carregar produtos no catálogo', () => {
-
         cy.intercept(
             'GET',
-            '**/products/catalog?page=1&limit=12',
+            '**/product-reviews/*',
             {
                 statusCode: 200,
-                body: {
-                    data: [
-                        {
-                            id_produto: 1,
-                            nome: 'Camisa Teste',
-                            preco_base: 99.90,
-                            imagens: [
-                                '/uploads/camisa.jpg'
-                            ]
-                        }
-                    ],
-                    pagination: {
-                        totalPages: 1
-                    }
-                }
+                body: []
             }
-        ).as('produtos');
+        );
+
+    });
+
+    function mockCategorias() {
 
         cy.intercept(
             'GET',
@@ -55,7 +41,34 @@ describe('Catálogo de produtos', () => {
                     ]
                 }
             }
-        ).as('categorias');
+        )
+            .as('categorias');
+    }
+
+    it('deve carregar produtos no catálogo', () => {
+
+        cy.intercept(
+            'GET',
+            '**/products/catalog?page=1&limit=12',
+            {
+                body: {
+                    data: [
+                        {
+                            id_produto: 1,
+                            nome: 'Camisa Teste',
+                            preco_base: 99.90,
+                            imagens: []
+                        }
+                    ],
+                    pagination: {
+                        totalPages: 1
+                    }
+                }
+            }
+        )
+            .as('produtos');
+
+        mockCategorias();
 
         cy.visit('/catalogo');
 
@@ -73,7 +86,7 @@ describe('Catálogo de produtos', () => {
 
         cy.intercept(
             'GET',
-            '**/products/catalog?page=1&limit=12&search=camisa',
+            '**/products/catalog?page=1&limit=12*search=camisa',
             {
                 statusCode: 200,
                 body: {
@@ -90,16 +103,131 @@ describe('Catálogo de produtos', () => {
                     }
                 }
             }
-        ).as('buscar');
+        )
+            .as('buscar');
+
+
+        mockCategorias();
+
 
         cy.visit('/catalogo');
+
 
         cy.get('[data-cy="buscar-produto"]')
             .type('camisa');
 
+
         cy.wait('@buscar');
 
+
         cy.contains('Camisa Preta')
+            .should('exist');
+
+    });
+
+    it('deve filtrar por categoria', () => {
+
+        mockCategorias();
+
+        cy.intercept(
+            'GET',
+            '**/products/catalog?page=1&limit=12',
+            {
+                body: {
+                    data: [],
+                    pagination: {
+                        totalPages: 1
+                    }
+                }
+            }
+        );
+
+        cy.intercept(
+            'GET',
+            '**/products/catalog?page=1&limit=12&id_categoria=1',
+            {
+                body: {
+                    data: [
+                        {
+                            id_produto: 5,
+                            nome: 'Camisa Categoria',
+                            preco_base: 80,
+                            imagens: []
+                        }
+                    ],
+                    pagination: {
+                        totalPages: 1
+                    }
+                }
+            }
+        )
+            .as('categoria');
+
+        cy.visit('/catalogo');
+
+        cy.contains('Camisas')
+            .click();
+
+        cy.wait('@categoria');
+
+        cy.contains('Camisa Categoria')
+            .should('exist');
+    });
+
+    it('deve ir para próxima página', () => {
+
+        cy.intercept(
+            'GET',
+            '**/products/catalog?page=1&limit=12',
+            {
+                body: {
+                    data: [
+                        {
+                            id_produto: 1,
+                            nome: 'Produto Página 1',
+                            preco_base: 50,
+                            imagens: []
+                        }
+                    ],
+                    pagination: {
+                        totalPages: 2
+                    }
+                }
+            }
+        );
+
+        cy.intercept(
+            'GET',
+            '**/products/catalog?page=2&limit=12',
+            {
+                body: {
+                    data: [
+                        {
+                            id_produto: 2,
+                            nome: 'Produto Página 2',
+                            preco_base: 70,
+                            imagens: []
+                        }
+                    ],
+                    pagination: {
+                        totalPages: 2
+                    }
+                }
+            }
+        )
+            .as('pagina2');
+
+        mockCategorias();
+
+        cy.visit('/catalogo');
+
+        cy.get('.pagination button')
+            .last()
+            .click();
+
+        cy.wait('@pagina2');
+
+        cy.contains('Produto Página 2')
             .should('exist');
     });
 
@@ -131,6 +259,8 @@ describe('Catálogo de produtos', () => {
             }
         );
 
+        mockCategorias();
+
         cy.visit('/catalogo');
 
         cy.get('[data-cy="ordenar"]')
@@ -139,6 +269,36 @@ describe('Catálogo de produtos', () => {
         cy.get('[data-cy="produto-card"]')
             .first()
             .should('contain', 'Produto B');
+    });
+
+    it('deve mostrar preço do produto', () => {
+
+        cy.intercept(
+            'GET',
+            '**/products/catalog?page=1&limit=12',
+            {
+                body: {
+                    data: [
+                        {
+                            id_produto: 20,
+                            nome: 'Camisa Preta',
+                            preco_base: 150,
+                            imagens: []
+                        }
+                    ],
+                    pagination: {
+                        totalPages: 1
+                    }
+                }
+            }
+        );
+
+        mockCategorias();
+
+        cy.visit('/catalogo');
+
+        cy.contains('R$ 150,00')
+            .should('exist');
     });
 
     it('deve abrir produto ao clicar no card', () => {
@@ -163,12 +323,17 @@ describe('Catálogo de produtos', () => {
             }
         );
 
+        mockCategorias();
+
         cy.visit('/catalogo');
 
         cy.get('[data-cy="produto-card"]')
             .click();
 
         cy.url()
-            .should('include', '/produto/10');
+            .should(
+                'include',
+                '/produto/10'
+            );
     });
 });

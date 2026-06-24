@@ -198,7 +198,7 @@ function Catalogo() {
 
                             return (
                                 <div
-                                    data-cy="produto-card"
+                                    data-cy={`produto-card-${prod.id_produto}`}
                                     className="product-card"
                                     key={prod.id_produto}
                                     onClick={() => navigate(`/produto/${prod.id_produto}`)}

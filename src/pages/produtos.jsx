@@ -43,7 +43,13 @@ function Produtos() {
         const produtosOk = (prodRes.data || []).map(normalizarProduto);
 
         setProdutos(produtosOk);
-        setCategorias(catRes.data || []);
+
+        setCategorias(
+          (catRes.data || []).map((c) => ({
+            id: c.id_categoria,
+            nome: c.nome
+          }))
+        );
 
         const avaliacoesTemp = {};
 

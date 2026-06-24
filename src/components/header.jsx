@@ -75,11 +75,11 @@ function Header() {
 
         window.addEventListener("storage", loadAuth);
 
-        const interval = setInterval(loadAuth, 1000);
+        // const interval = setInterval(loadAuth, 1000);
 
         return () => {
             window.removeEventListener("storage", loadAuth);
-            clearInterval(interval);
+            // clearInterval(interval);
         };
     }, []);
 

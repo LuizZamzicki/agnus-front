@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 
 import Header from "./components/header";
 import Footer from "./components/footer";
@@ -24,17 +24,28 @@ import NotFound from "./pages/notFound";
 function hasAuth() {
   const token = localStorage.getItem("auth_token");
   const auth = localStorage.getItem("auth");
-  return Boolean(token || auth);
+
+  return Boolean(token && auth);
 }
 
 function hasRole(requiredRole: string) {
   try {
     const authRaw = localStorage.getItem("auth");
-    if (!authRaw) return false;
+
+    if (!authRaw) {
+      return false;
+    }
 
     const auth = JSON.parse(authRaw);
 
-    const tipo = auth?.user?.tipo || auth?.tipo;
+    const tipo =
+      auth?.user?.tipo ||
+      auth?.tipo ||
+      auth?.usuario?.tipo;
+
+    if (!tipo) {
+      return false;
+    }
 
     return String(tipo).toLowerCase() === requiredRole.toLowerCase();
   } catch {
@@ -42,11 +53,44 @@ function hasRole(requiredRole: string) {
   }
 }
 
+/**
+ * Route guard component for admin routes
+ * Ensures user is authenticated and has admin role
+ */
 function RequireAdmin({ children }: { children: ReactNode }) {
-  if (!hasAuth()) return <Navigate to="/login" replace />;
+  const token = localStorage.getItem("auth_token");
+  const authRaw = localStorage.getItem("auth");
 
-  if (!hasRole("administrador")) return <Navigate to="/" replace />;
+  if (!token || !authRaw) {
+    console.error("[RequireAdmin] Missing tokens", {
+      hasToken: !!token,
+      hasAuth: !!authRaw,
+    });
+    return <Navigate to="/login" replace />;
+  }
 
+  let auth;
+  try {
+    auth = JSON.parse(authRaw);
+  } catch (error) {
+    console.error("[RequireAdmin] Invalid auth JSON:", error);
+    return <Navigate to="/login" replace />;
+  }
+
+  const tipo = auth?.user?.tipo || auth?.tipo || auth?.usuario?.tipo;
+
+  console.log("[RequireAdmin] Auth check:", {
+    tipo,
+    auth_keys: Object.keys(auth || {}),
+    user_keys: Object.keys(auth?.user || {}),
+  });
+
+  if (!tipo || String(tipo).toLowerCase() !== "administrador") {
+    console.error("[RequireAdmin] User is not admin. Role:", tipo);
+    return <Navigate to="/" replace />;
+  }
+
+  console.log("[RequireAdmin] ✓ User authenticated as admin");
   return children;
 }
 
@@ -69,12 +113,6 @@ function App() {
 
         <Route path="/carrinho" element={<Carrinho />} />
         <Route path="/produto/:id_produto" element={<Produto />} />
-
-        <Route path="/perfil" element={<ClientePerfil />} />
-        <Route path="/pedidos" element={<ClientePedidos />} />
-        <Route path="/enderecos" element={<ClienteEnderecos />} />
-        <Route path="/contatos" element={<ClienteContatos />} />
-        <Route path="/senha" element={<ClienteSenha />} />
 
         <Route path="/cliente" element={<Cliente />}>
           <Route index element={<ClientePerfil />} />

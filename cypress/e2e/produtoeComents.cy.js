@@ -1,5 +1,6 @@
 describe('Produto - avaliações', () => {
 
+
     beforeEach(() => {
 
         localStorage.setItem(
@@ -10,6 +11,7 @@ describe('Produto - avaliações', () => {
             })
         );
 
+
         localStorage.setItem(
             'auth_token',
             'fake-token'
@@ -17,7 +19,10 @@ describe('Produto - avaliações', () => {
 
     });
 
-    it('deve carregar produto corretamente', () => {
+
+
+    function mockProduto() {
+
 
         cy.intercept(
             'GET',
@@ -31,94 +36,216 @@ describe('Produto - avaliações', () => {
                     preco_base: 100
                 }
             }
-        );
+        ).as('produto');
+
+
+
+        cy.intercept(
+            'GET',
+            '**/product-colors/1',
+            {
+                statusCode: 200,
+                body: [
+                    {
+                        id_produto_cor: 1,
+                        id_produto: 1,
+                        nome: 'Azul Lunar',
+                        codigo_rgb: 'rgb(26,47,209)',
+                        acrescimo: "0.00"
+                    }
+                ]
+            }
+        ).as('cores');
+
+
+
+        cy.intercept(
+            'GET',
+            '**/product-grades/1',
+            {
+                statusCode: 200,
+                body: [
+                    {
+                        id_produto_grade: 1,
+                        id_produto: 1,
+                        nome: 'M',
+                        acrescimo: "0.00"
+                    }
+                ]
+            }
+        ).as('grades');
+
+
 
         cy.intercept(
             'GET',
             '**/product-photos/1',
             {
-                body: []
-            }
-        );
-
-        cy.intercept(
-            'GET',
-            '**/product-colors/1',
-            {
+                statusCode: 200,
                 body: [
                     {
+                        id_produto_foto: 1,
+                        id_produto: 1,
                         id_produto_cor: 1,
-                        nome: 'Preto'
+                        caminho_url: 'produto_fotos/teste.png'
                     }
                 ]
             }
-        );
+        ).as('fotos');
 
-        cy.intercept(
-            'GET',
-            '**/product-grades/1',
-            {
-                body: [
-                    {
-                        id_produto_grade: 1,
-                        nome: 'M'
-                    }
-                ]
-            }
-        );
+
 
         cy.intercept(
             'GET',
             '**/product-reviews/1',
             {
+                statusCode: 200,
                 body: []
             }
-        );
+        ).as('reviews');
+
+    }
+
+
+
+
+
+    it('deve carregar produto corretamente', () => {
+
+
+        mockProduto();
+
 
         cy.visit('/produto/1');
 
+
+        cy.wait('@produto');
+
+
         cy.contains('Camisa Teste')
             .should('exist');
+
+
     });
 
+
+
+
+
+
     it('deve permitir enviar avaliação', () => {
+
+
+        mockProduto();
+
+
+
         cy.intercept(
             'GET',
-            '**/products/1',
+            '**/orders**',
             {
-                body: {
-                    id_produto: 1,
-                    nome: 'Camisa Teste',
-                    preco_base: 100
-                }
+                statusCode: 200,
+                body: [
+                    {
+                        id_pedido: 10,
+                        status: 'entregue'
+                    }
+                ]
             }
         );
 
+
+
         cy.intercept(
             'GET',
-            '**/product-colors/1',
+            '**/order-items/10',
             {
+                statusCode: 200,
                 body: [
                     {
                         id_produto_cor: 1,
-                        nome: 'Preto'
+                        id_produto_grade: 1
                     }
                 ]
             }
         );
 
+
+
         cy.intercept(
-            'GET',
-            '**/product-grades/1',
+            'POST',
+            '**/product-reviews',
             {
-                body: [
-                    {
-                        id_produto_grade: 1,
-                        nome: 'M'
-                    }
-                ]
+                statusCode: 200,
+                body: {
+                    id_avaliacao_produto: 5
+                }
             }
-        );
+        ).as('enviarReview');
+
+
+
+        cy.visit('/produto/1');
+
+
+
+        cy.get('[data-cy="escrever-avaliacao"]',
+            {
+                timeout: 10000
+            }
+        )
+            .should('be.visible')
+            .click();
+
+
+
+
+        cy.get('[data-cy="nota-avaliacao"]')
+            .clear()
+            .type('5');
+
+
+
+        cy.get('[data-cy="comentario-avaliacao"]')
+            .type('Produto excelente');
+
+
+
+        cy.get('[data-cy="enviar-avaliacao"]')
+            .click();
+
+
+
+
+        cy.wait('@enviarReview')
+            .its('response.statusCode')
+            .should('eq', 200);
+
+
+
+        cy.get('[data-cy="produto-alerta"]')
+            .should(
+                'contain',
+                'Avaliação enviada'
+            );
+
+
+    });
+
+
+
+
+
+
+
+
+    it('não deve enviar avaliação sem comentário', () => {
+
+
+
+        mockProduto();
+
+
 
         cy.intercept(
             'GET',
@@ -133,6 +260,8 @@ describe('Produto - avaliações', () => {
             }
         );
 
+
+
         cy.intercept(
             'GET',
             '**/order-items/10',
@@ -146,88 +275,69 @@ describe('Produto - avaliações', () => {
             }
         );
 
-        cy.intercept(
-            'GET',
-            '**/product-reviews/1',
-            {
-                body: []
-            }
-        );
 
-        cy.intercept(
-            'POST',
-            '**/product-reviews',
-            {
-                statusCode: 200,
-                body: {
-                    id_avaliacao_produto: 5
-                }
-            }
-        ).as('enviarReview');
 
         cy.visit('/produto/1');
 
-        cy.get('[data-cy="escrever-avaliacao"]')
-            .click();
 
-        cy.get('[data-cy="nota-avaliacao"]')
-            .clear()
-            .type('5');
 
-        cy.get('[data-cy="comentario-avaliacao"]')
-            .type('Produto excelente, gostei muito.');
 
-        cy.get('[data-cy="enviar-avaliacao"]')
-            .click();
-
-        cy.wait('@enviarReview')
-            .its('response.statusCode')
-            .should('eq', 200);
-
-        cy.get('[data-cy="produto-alerta"]')
-            .should(
-                'contain',
-                'Avaliação enviada'
-            );
-    });
-
-    it('não deve enviar avaliação sem comentário', () => {
-
-        cy.intercept(
-            'GET',
-            '**/product-reviews/1',
+        cy.get('[data-cy="escrever-avaliacao"]',
             {
-                body: []
+                timeout: 10000
             }
-        );
-
-        cy.visit('/produto/1');
-
-        cy.get('[data-cy="escrever-avaliacao"]')
+        )
+            .should('be.visible')
             .click();
+
+
 
         cy.get('[data-cy="nota-avaliacao"]')
             .type('5');
 
+
+
         cy.get('[data-cy="enviar-avaliacao"]')
             .click();
+
+
 
         cy.get('[data-cy="produto-alerta"]')
             .should(
                 'contain',
                 'Digite um comentário'
             );
+
     });
 
+
+
+
+
+
+
+
+
     it('deve adicionar produto no carrinho', () => {
+
+
+
+        mockProduto();
+
+
+
 
         cy.intercept(
             'GET',
             '**/carts?id_usuario=1',
             {
+                statusCode: 200,
                 body: []
             }
-        );
+        ).as('buscarCarrinho');
+
+
+
 
         cy.intercept(
             'POST',
@@ -238,30 +348,68 @@ describe('Produto - avaliações', () => {
                     id_carrinho: 1
                 }
             }
+        ).as('criarCarrinho');
+
+
+
+
+        cy.intercept(
+            'GET',
+            '**/cart-items/1',
+            {
+                statusCode: 200,
+                body: []
+            }
         );
+
+
+
 
         cy.intercept(
             'POST',
             '**/cart-items',
             {
                 statusCode: 200,
-                body: {}
+                body: {
+                    id_item: 1
+                }
             }
         ).as('addCarrinho');
 
+
+
+
         cy.visit('/produto/1');
 
-        cy.get('[data-cy="tamanho-1"]')
+
+
+        cy.wait('@produto');
+        cy.wait('@cores');
+        cy.wait('@grades');
+
+        cy.get('[data-cy="adicionar-carrinho"]',
+            {
+                timeout: 10000
+            }
+        )
+            .should('not.be.disabled')
             .click();
 
-        cy.get('[data-cy="cor-1"]')
-            .click();
 
-        cy.get('[data-cy="adicionar-carrinho"]')
-            .click();
+
+        cy.wait('@buscarCarrinho');
+
+        cy.wait('@criarCarrinho');
+
+
 
         cy.wait('@addCarrinho')
             .its('response.statusCode')
             .should('eq', 200);
+
+
+
     });
+
+
 });
